@@ -30,6 +30,25 @@ cd suffuse
 go install ./...
 ```
 
+Running
+=======
+
+After install, suffuse has been installed in $GOROOT/bin.
+```
+% suffuse
+Usage: suffuse <options> [path path ...]
+
+  -d=false: log at DEBUG level
+  -m="": mount point
+  -n="": volume name (OSX only)
+  -t=false: create scratch directory as mount point
+  -v=false: log at INFO level
+
+% suffuse -m /mnt $HOME &
+% ls -l /mnt
+%
+```
+
 Development
 ===========
 
