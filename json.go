@@ -19,3 +19,7 @@ func WriteJsonFile(p Path, x interface{}) {
     ioutil.WriteFile(p.Path, data, 0444)
   }
 }
+
+func JsonPretty(x interface{}) string {
+  return MaybeByteString(json.MarshalIndent(x, "", "    "))
+}

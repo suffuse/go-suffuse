@@ -8,7 +8,7 @@ import (
 
 func PsutilHostDump () {
   hostInfo, _ := host.HostInfo()
-  Printfln("%v", *hostInfo)
+  Println(JsonPretty(*hostInfo))
   // Printfln("%#v", ProcessTable())
 }
 

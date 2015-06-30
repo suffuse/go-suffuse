@@ -42,6 +42,10 @@ func MaybeString(result string, err error) string {
   if err != nil { return "" }
   return result
 }
+func MaybeByteString(result []byte, err error) string {
+  if err != nil { return "" }
+  return string(result)
+}
 
 func (x Path) GoAbs() (string, error)          { return filepath.Abs(x.Path)           }
 func (x Path) GoBase() string                  { return filepath.Base(x.Path)          }

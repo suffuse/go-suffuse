@@ -38,9 +38,9 @@ type Lines struct {
 func NewLines(lines ...string) Lines { return Lines { lines                  } }
 func NewRegex(re string) Regex       { return Regex { regexp.MustCompile(re) } }
 
-func SplitLines(s string) Lines { return NewLines(strings.Split(s, "\n")...) }
-func Strings(xs ...string) []string { return xs                 }
-func ByteBuf(size int) []byte       { return make([]byte, size) }
+func SplitLines(s string) Lines     { return NewLines(strings.Split(s, "\n")...) }
+func Strings(xs ...string) []string { return xs                                  }
+func ByteBuf(size int) []byte       { return make([]byte, size)                  }
 
 func (x Lines) Filter(re Regex) Lines    { return filterCommon(x, re, true)    }
 func (x Lines) FilterNot(re Regex) Lines { return filterCommon(x, re, false)   }
