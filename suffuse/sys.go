@@ -66,14 +66,9 @@ func GoFileInfoToFuseAttr(fi os.FileInfo) fuse.Attr {
   switch sp := fi.Sys().(type) {
     case *sys.Stat_t :
       AssertEq(StatModeToGoMode(uint64(sp.Mode)), a.Mode)
-
+      // System specific attributes
       SetSysAttributes(sp, &a)
-
-      // a.Atime  = TimespecToGoTime(sp.Atimespec)
-      // a.Crtime = TimespecToGoTime(sp.Birthtimespec) // time of creation (OS X only)
-      // a.Ctime  = TimespecToGoTime(sp.Ctimespec)     // time of last inode change
       a.Blocks = uint64(sp.Blocks)
-      // a.Flags  = sp.Flags
       a.Gid    = sp.Gid
       a.Inode  = uint64(sp.Ino)
       a.Nlink  = uint32(sp.Nlink)

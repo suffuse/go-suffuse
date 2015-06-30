@@ -27,6 +27,7 @@ func (u *Sfs) Init(ctx context.Context, req *fuse.InitRequest, resp *fuse.InitRe
   logI("Init", "req", req)
   return nil
 }
+
 func (u *Sfs) Destroy(ctx context.Context) {
   logI("Destroy")
 }

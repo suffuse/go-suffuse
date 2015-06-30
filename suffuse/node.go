@@ -6,16 +6,16 @@ import (
   f "bazil.org/fuse"
 )
 
-func (x Elem) GetPath() Path         { return x.Path               }
-func (x Elem) GetType() f.DirentType { return x.Typ                }
+func (x *Elem) GetPath() Path         { return x.Path               }
+func (x *Elem) GetType() f.DirentType { return x.Typ                }
 
-func (x Elem) IsBlockDev() bool      { return x.Typ == f.DT_Block  }
-func (x Elem) IsCharDev() bool       { return x.Typ == f.DT_Char   }
-func (x Elem) IsDir()  bool          { return x.Typ == f.DT_Dir    }
-func (x Elem) IsFifo() bool          { return x.Typ == f.DT_FIFO   }
-func (x Elem) IsFile() bool          { return x.Typ == f.DT_File   }
-func (x Elem) IsLink() bool          { return x.Typ == f.DT_Link   }
-func (x Elem) IsSocket() bool        { return x.Typ == f.DT_Socket }
+func (x *Elem) IsBlockDev() bool      { return x.Typ == f.DT_Block  }
+func (x *Elem) IsCharDev() bool       { return x.Typ == f.DT_Char   }
+func (x *Elem) IsDir()  bool          { return x.Typ == f.DT_Dir    }
+func (x *Elem) IsFifo() bool          { return x.Typ == f.DT_FIFO   }
+func (x *Elem) IsFile() bool          { return x.Typ == f.DT_File   }
+func (x *Elem) IsLink() bool          { return x.Typ == f.DT_Link   }
+func (x *Elem) IsSocket() bool        { return x.Typ == f.DT_Socket }
 
 // FIXME hardcodes the sed suffix.
 func FindBytes(x Path) []byte {
@@ -39,27 +39,7 @@ func HandleRead(req *f.ReadRequest, resp *f.ReadResponse, data []byte) {
   resp.Data = resp.Data[:n]
 }
 
-func (x Elem) GetVattr() Vattr {
-     path := x.Path
-  fi, err := path.OsLstat()
-  var attr f.Attr
-
-  if err != nil {
-    subpath, cmd := splitSedSuffix(path)
-    if cmd == "" {
-      return VattrErr { err }
-    }
-    fi, err = subpath.OsStat()
-    attr = GoFileInfoToFuseAttr(fi)
-    attr.Size = uint64(len(slurpSedSuffix(path)))
-  } else {
-    attr = GoFileInfoToFuseAttr(fi)
-  }
-
-  return VattrOk { attr }
-}
-
-func (x Elem) String() string { return x.Path.Path }
+func (x *Elem) String() string { return x.Path.Path }
 
 func attrString(path Path, a f.Attr) string {
   format := StripMargin('|', `
