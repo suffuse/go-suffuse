@@ -6,7 +6,8 @@ A raw snapshot of generic file virtualization in progress. Written in go.
 Prerequisites
 =============
 
-[Go](https://golang.org/).
+- [Go](https://golang.org/).
+- The [GOPATH environment variable](https://github.com/golang/go/wiki/GOPATH) correctly set.
 
 Installation
 ============
