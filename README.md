@@ -16,7 +16,7 @@ Installation
 
 The easy 'go' way
 ```
-go get github.com/paulp/suffuse/suffuse
+go get github.com/paulp/suffuse/cmd/suffuse
 ```
 
 The harder 'go' way
