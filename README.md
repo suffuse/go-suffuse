@@ -16,12 +16,12 @@ Installation
 
 The easy 'go' way
 ```
-go install github.com/paulp/suffuse/...
+go get github.com/paulp/suffuse/suffuse
 ```
 
 The harder 'go' way
 ```
-go get github.com/paulp/suffuse
+go get github.com/paulp/suffuse/...
 cd "$(go list -f '{{.Dir}}' github.com/paulp/suffuse)"
 go install ./...
 ```
