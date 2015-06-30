@@ -11,6 +11,8 @@ Prerequisites
 Installation
 ============
 
+**When you see ... it means literally three dots.** It's the go syntax for "all projects under this directory."
+
 The easy 'go' way
 ```
 go install github.com/paulp/suffuse/...
