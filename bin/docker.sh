@@ -13,7 +13,7 @@ docker_run_opts="--rm --cap-add SYS_ADMIN --device /dev/fuse -ti $docker_image"
 
 export GOPATH="$workdir"
 mkdir -p "$target"
-rsync -av --relative ./* "$target"
+rsync -av --relative cmd suffuse "$target"
 cp Dockerfile "$workdir"
 
 cd "$workdir"

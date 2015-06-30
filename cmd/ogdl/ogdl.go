@@ -3,7 +3,7 @@ package main
 import (
   "os"
   "github.com/rveen/ogdl"
-  "github.com/paulp/suffuse"
+  "github.com/paulp/suffuse/suffuse"
 )
 
 func main() {

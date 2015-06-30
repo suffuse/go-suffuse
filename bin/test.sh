@@ -3,4 +3,4 @@
 
 clear && printf '\e[3J' && clear
 
-go test -v github.com/paulp/suffuse
+go test -v ./...

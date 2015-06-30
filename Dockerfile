@@ -5,10 +5,10 @@ FROM paulp/debian
 
 ENV GOPATH /go
 ENV PATH "$GOPATH/bin:$PATH"
+ENV SUFFUSE "github.com/paulp/suffuse/..."
 
 ADD go /go
-RUN go get -t -d -v github.com/paulp/suffuse/...
-RUN go build github.com/paulp/suffuse/...
-RUN go install github.com/paulp/suffuse/...
+RUN go get -t -d -v $SUFFUSE
+RUN go install $SUFFUSE
 
-ENTRYPOINT [ "go", "test", "-v", "github.com/paulp/suffuse" ]
+ENTRYPOINT [ "go", "test", "-v", "github.com/paulp/suffuse/..." ]
