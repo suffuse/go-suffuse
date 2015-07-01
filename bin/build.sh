@@ -4,5 +4,5 @@
 clear && printf '\e[3J' && clear
 
 echo "[Building...]"
-go build -v github.com/paulp/suffuse
+go build -v github.com/suffuse/go-suffuse/...
 echo "[Done]"

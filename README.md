@@ -55,6 +55,9 @@ Usage: suffuse <options> [path path ...]
 Development
 ===========
 
+Make sure your local checkout is located in:
+`$GOPATH/src/github.com/suffuse/go-suffuse`
+
 ```
 # Continuous testing
 bin/cc.sh
