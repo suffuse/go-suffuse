@@ -1,6 +1,6 @@
 package main
 
-import . "github.com/paulp/suffuse/suffuse"
+import . "github.com/suffuse/go-suffuse/suffuse"
 
 var mfs Sfs
 var err error

@@ -6,7 +6,7 @@ set -e
 
 # Xs are necessary for linux's mktemp, ignored by OSX's. Madness.
 workdir="$(mktemp -d -t suffuseXXXXXX)"
-package="github.com/paulp/suffuse"
+package="github.com/suffuse/go-suffuse"
 target="$workdir/go/src/$package"
 docker_image="suffuse"
 docker_run_opts="--rm --cap-add SYS_ADMIN --device /dev/fuse -ti $docker_image"

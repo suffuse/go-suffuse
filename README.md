@@ -16,20 +16,20 @@ Installation
 
 The easy 'go' way
 ```
-go get github.com/paulp/suffuse/cmd/suffuse
+go get github.com/suffuse/go-suffuse/cmd/suffuse
 ```
 
 The harder 'go' way
 ```
-go get github.com/paulp/suffuse/...
-cd "$(go list -f '{{.Dir}}' github.com/paulp/suffuse)"
+go get github.com/suffuse/go-suffuse/...
+cd "$(go list -f '{{.Dir}}' github.com/suffuse/go-suffuse)"
 go install ./...
 ```
 
 The not-so-'go' way
 ```
-git clone https://github.com/paulp/suffuse
-cd suffuse
+git clone https://github.com/suffuse/go-suffuse
+cd go-suffuse
 go install ./...
 ```
 

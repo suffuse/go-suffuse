@@ -1,7 +1,7 @@
 package suffuse
 
 import (
-  "github.com/paulp/suffuse/suffuse/xattr"
+  "github.com/suffuse/go-suffuse/suffuse/xattr"
   "os"
   "golang.org/x/net/context"
   "bazil.org/fuse/fs"

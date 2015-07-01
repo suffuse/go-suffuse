@@ -97,13 +97,13 @@ func TimespecToGoTime(ts sys.Timespec) time.Time {
   return time.Unix(ts.Sec, ts.Nsec)
 }
 
-// src/github.com/paulp/suffuse/sys.go:68: cannot use sp.Mode (type uint32) as type uint16 in argument to StatModeToGoMode
-// src/github.com/paulp/suffuse/sys.go:70: sp.Atimespec undefined (type *syscall.Stat_t has no field or method Atimespec)
-// src/github.com/paulp/suffuse/sys.go:71: sp.Birthtimespec undefined (type *syscall.Stat_t has no field or method Birthtimespec)
-// src/github.com/paulp/suffuse/sys.go:72: sp.Ctimespec undefined (type *syscall.Stat_t has no field or method Ctimespec)
-// src/github.com/paulp/suffuse/sys.go:74: sp.Flags undefined (type *syscall.Stat_t has no field or method Flags)
-// src/github.com/paulp/suffuse/sys.go:92: cannot use s.Bsize (type int64) as type uint32 in field value
-// src/github.com/paulp/suffuse/sys.go:93: cannot use s.Bsize (type int64) as type uint32 in field value
+// sys.go:68: cannot use sp.Mode (type uint32) as type uint16 in argument to StatModeToGoMode
+// sys.go:70: sp.Atimespec undefined (type *syscall.Stat_t has no field or method Atimespec)
+// sys.go:71: sp.Birthtimespec undefined (type *syscall.Stat_t has no field or method Birthtimespec)
+// sys.go:72: sp.Ctimespec undefined (type *syscall.Stat_t has no field or method Ctimespec)
+// sys.go:74: sp.Flags undefined (type *syscall.Stat_t has no field or method Flags)
+// sys.go:92: cannot use s.Bsize (type int64) as type uint32 in field value
+// sys.go:93: cannot use s.Bsize (type int64) as type uint32 in field value
 
 // Unix stat/lstat mode bits to Go os.FileMode.
 func StatModeToGoMode(bits uint64) os.FileMode {
