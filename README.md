@@ -125,6 +125,9 @@ _Kill the suffuse instance_
 Development
 ===========
 
+Make sure your local checkout is located in:
+`$GOPATH/src/github.com/suffuse/go-suffuse`
+
 ```
 # Continuous testing
 bin/cc.sh
