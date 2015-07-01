@@ -48,9 +48,6 @@ func (x Path) SysStatfs() (sys.Statfs_t, error) {
   err := sys.Statfs(x.Path, &s)
   return s, err
 }
-func (x Path) SysUnmount() error {
-  return sys.Unmount(x.Path, MNT_FORCE)
-}
 
 /** Conversions amongst unix, fuse, and go data structures.
  */
