@@ -11,7 +11,7 @@ func NewDuration(spec string) time.Duration {
   return dur
 }
 func Hours(n int) time.Duration {
-  return NewDuration(Sprintf("%d", n) + "s")
+  return NewDuration(Sprintf("%dh", n))
 }
 
 func (s *Tsfs) TestPathOsMethods(c *C) {

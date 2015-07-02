@@ -17,9 +17,68 @@ import (
 // call but not the open(2) system call. If Access is not
 // implemented, the Node behaves as if it always returns nil
 // (permission granted), relying on checks in Open instead.
+// TODO - permissions check.
 func (x *Elem) Access(ctx context.Context, req *f.AccessRequest) error {
   logD("Access", "path", x.Path)
-  // TODO - permissions check.
+  return nil
+}
+
+// There doesn't appear to be any way to set one or the other
+// time, you always have to specify two values. So if both are
+// valid according to fuse, we pass both, but if only one is,
+// we stat the current values and pass what was already there
+// for the not-being-set-right-now slot.
+func setattrChtimes(path Path, req *f.SetattrRequest) error {
+  isAtime := req.Valid.Atime()
+  isMtime := req.Valid.Mtime()
+
+  if isAtime || isMtime {
+    var atime, mtime time.Time
+    if isAtime && isMtime {
+      atime = req.Atime
+      mtime = req.Mtime
+    } else {
+      // one of them needs to be preserved
+      atime, mtime = path.OsStatAtimeMtime()
+      if isAtime { atime = req.Atime }
+      if isMtime { mtime = req.Mtime }
+    }
+    return path.OsChtimes(atime, mtime)
+  }
+  return nil
+}
+
+// man 2 chown:
+//   One of the owner or group id's may be left unchanged by specifying it as -1.
+func setattrChown(path Path, req *f.SetattrRequest) error {
+  isValidUid := req.Valid.Uid()
+  isValidGid := req.Valid.Gid()
+
+  if isValidUid || isValidGid {
+    uid, gid := -1, -1
+    if isValidUid { uid = int(req.Uid) }
+    if isValidGid { gid = int(req.Gid) }
+    return path.OsChown(uid, gid)
+  }
+  return nil
+}
+
+// TODO - identify which bits besides permission bits can
+// theoretically be set, as opposed to being unmodifiable
+// consequences of the inode.
+func setattrChmod(path Path, req *f.SetattrRequest) error {
+  if req.Valid.Mode() {
+    return path.OsChmod(req.Mode & os.ModePerm)
+  }
+  return nil
+}
+
+// "Truncate" is kind of a scary name, but it's used to both shrink
+// and increase the size of files.
+func setattrTruncate(path Path, req *f.SetattrRequest) error {
+  if req.Valid.Size() {
+    return path.OsTruncate(int64(req.Size))
+  }
   return nil
 }
 
@@ -35,61 +94,15 @@ func (x *Elem) Access(ctx context.Context, req *f.AccessRequest) error {
 // unless req.Valid.Mode() is true.
 func (x *Elem) Setattr(ctx context.Context, req *f.SetattrRequest, resp *f.SetattrResponse) error {
   logD("Setattr", "path", x.Path, "req", *req)
-  // TODO - permissions check on ops which require it (see also Access.)
-  // TODO - accumulate and report errors somehow.
+  // Not Yet Implemented:
+  // req.Valid.{ Handle, LockOwner, Crtime, Chgtime, Bkuptime, Flags }
 
-  // There doesn't appear to be any way to set one or the other
-  // time, you always have to specify two values. So if both are
-  // valid according to fuse, we pass both, but if only one is,
-  // we stat the current values and pass what was already there
-  // for the not-being-set-right-now slot.
-  if req.Valid.Atime() || req.Valid.Mtime() {
-    var atime, mtime time.Time
-    if req.Valid.Atime() && req.Valid.Mtime() {
-      atime = req.Atime
-      mtime = req.Mtime
-    } else {
-      // one of them needs to be preserved
-      atime, mtime = x.Path.OsStatAtimeMtime()
-      if req.Valid.Atime() { atime = req.Atime }
-      if req.Valid.Mtime() { mtime = req.Mtime }
-    }
-    x.Path.OsChtimes(atime, mtime)
-  }
-  // TODO - identify which bits besides permission bits can
-  // theoretically be set, as opposed to being unmodifiable
-  // consequences of the inode.
-  if req.Valid.Mode() {
-    perms := req.Mode & os.ModePerm
-    x.Path.OsChmod(perms)
-  }
-  if req.Valid.Uid() || req.Valid.Gid() {
-    uid, gid := -1, -1
-    if req.Valid.Uid() { uid = int(req.Uid) }
-    if req.Valid.Gid() { gid = int(req.Gid) }
-    x.Path.OsChown(uid, gid)
-  }
-  // "Truncate" is kind of a scary name, but it's used to both shrink
-  // and increase the size of files.
-  if req.Valid.Size() {
-    x.Path.OsTruncate(int64(req.Size))
-  }
-
-  /** TODO - or at least to investigate. **/
-  // if req.Valid.Handle() {
-  // }
-  // if req.Valid.LockOwner() {
-  // }
-  // if req.Valid.Crtime() {
-  // }
-  // if r.Valid.Chgtime() {
-  // }
-  // if r.Valid.Bkuptime() {
-  // }
-  // if r.Valid.Flags() {
-  // }
-
-  return nil
+  return FindError(
+    setattrChtimes(x.Path, req),
+    setattrChown(x.Path, req),
+    setattrChmod(x.Path, req),
+    setattrTruncate(x.Path, req),
+  )
 }
 
 func (x *Elem) Attr(ctx context.Context, attr *f.Attr) error {
