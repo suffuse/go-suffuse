@@ -1,7 +1,7 @@
 package suffuse
 
 import (
-  "syscall"
+  sys "syscall"
   "bazil.org/fuse"
 )
 
@@ -17,9 +17,13 @@ func PlatformOptions() []fuse.MountOption {
   }
 }
 
-func SetSysAttributes(sp *syscall.Stat_t, a *fuse.Attr) {
+func SetSysAttributes(sp *sys.Stat_t, a *fuse.Attr) {
   a.Atime  = TimespecToGoTime(sp.Atimespec)
   a.Crtime = TimespecToGoTime(sp.Birthtimespec) // time of creation (OS X only)
   a.Ctime  = TimespecToGoTime(sp.Ctimespec)     // time of last inode change
   a.Flags  = sp.Flags
+}
+
+func (x Path) SysUnmount() error {
+  return sys.Unmount(x.Path, MNT_FORCE)
 }
