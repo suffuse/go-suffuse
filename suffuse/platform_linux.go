@@ -2,7 +2,7 @@ package suffuse
 
 import (
   "time"
-  "syscall"
+  sys "syscall"
   "bazil.org/fuse"
 )
 
@@ -11,9 +11,13 @@ func PlatformOptions() []fuse.MountOption {
   }
 }
 
-func SetSysAttributes(sp *syscall.Stat_t, a *fuse.Attr) {
+func SetSysAttributes(sp *sys.Stat_t, a *fuse.Attr) {
 }
 
-func SysAtimeMtime(sp *syscall.Stat_t) (atime time.Time, mtime time.Time) {
+func (x Path) SysUnmount() error {
+  return fuse.Unmount(x.Path)
+}
+
+func SysAtimeMtime(sp *sys.Stat_t) (atime time.Time, mtime time.Time) {
   return TimespecToGoTime(sp.Atim), TimespecToGoTime(sp.Mtim)
 }
