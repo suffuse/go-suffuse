@@ -5,11 +5,9 @@ package suffuse
 
 import (
   sys "syscall"
-  // "bytes"
   "os"
   "os/signal"
   "time"
-  // "howett.net/plist"
   "bazil.org/fuse"
 )
 
