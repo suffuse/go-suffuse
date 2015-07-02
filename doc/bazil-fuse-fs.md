@@ -1,6 +1,16 @@
-# Serve distillation.
-#
+# [bazil.org/fuse/fs](https://github.com/bazil/fuse/blob/master/fs/serve.go) data types
 
+fs/serve.go is the provided "high level" FUSE interface, as opposed to the "low level"
+interface where you work directly with request and response structure pointers. In the
+high level interface you get to exploit some common infrastructure code like keeping
+track of open filehandles.
+
+These are the interface names. bazil/fs places one method in each, then performs
+type assertions to see if you've implemented that one method.
+
+Node is an inode, Handle is a file descriptor.
+
+```go
 # An FS is the interface required of a file system.
 FS
 FSDestroyer
@@ -39,8 +49,11 @@ NodeSetattrer
 NodeSetxattrer
 NodeStringLookuper
 NodeSymlinker
+```
 
-# Required interface methods
+These are the methods found in the interfaces above. You implement these as "instance" methods on some struct type which conforms to the FS, Handle, or Node interface.
+```go
+# Required - only one FS method and one Node method are mandatory.
 func (FS) Root() (Node, error)
 func (Node) Attr(ctx context.Context, attr *fuse.Attr) error
 
@@ -77,3 +90,4 @@ Setattr    (ctx, req *SetattrRequest, resp *SetattrResponse)
 Setxattr   (ctx, req *SetxattrRequest)
 Statfs     (ctx, req *StatfsRequest, resp *StatfsResponse)
 Write      (ctx, req *WriteRequest, resp *WriteResponse)
+```

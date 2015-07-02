@@ -1,5 +1,0 @@
-Kernel protocol
-
-RequestID: to match response to request lifetime ends with response
-NodeID: directory entry kernels knows about kernel tells when to forget
-HandleID: open file kernel tells when to destroy

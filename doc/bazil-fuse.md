@@ -1,5 +1,6 @@
-# Fuse/system data structures.
+# [bazil.org/fuse](https://github.com/bazil/fuse) data types
 
+```go
 // A Conn represents a connection to a mounted FUSE file system.
 type Conn struct {
   // Ready is closed when the mount is complete or has failed.
@@ -45,6 +46,17 @@ type Header struct {
   msg *message
 }
 
+type Dirent struct {
+  Inode uint64
+  Type DirentType (alias for uint32)
+  Name string
+}
+```
+
+# [golang](http://golang.org/) data types
+
+```go
+// package os
 type FileInfo interface {
   Name() string       // base name of the file
   Size() int64        // length in bytes for regular files; system-dependent for others
@@ -54,13 +66,8 @@ type FileInfo interface {
   Sys() interface{}   // underlying data source (can return nil)
 }
 
-type Dirent struct {
-  Inode uint64
-  Type DirentType (uint32)
-  Name string
-}
-
-const [os.FileMode] (
+// package os FileMode constants
+const (
   // The single letters are the abbreviations
   // used by the String methods formatting.
   ModeDir        FileMode = 1 << (32 - 1 - iota) // d: is a directory
@@ -80,6 +87,9 @@ const [os.FileMode] (
   ModePerm FileMode = 0777 // permission bits
 )
 
+// package syscall
+// This is actually the linux variation, because the go documentation
+// always gives you the linux structures without ever telling you that.
 type Stat_t struct {
   Dev       uint64
   Ino       uint64
@@ -96,3 +106,5 @@ type Stat_t struct {
   Mtim      Timespec
   Ctim      Timespec
   X__unused [3]int64
+}
+```
