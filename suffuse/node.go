@@ -17,13 +17,6 @@ func (x *Elem) IsFile() bool          { return x.Typ == f.DT_File   }
 func (x *Elem) IsLink() bool          { return x.Typ == f.DT_Link   }
 func (x *Elem) IsSocket() bool        { return x.Typ == f.DT_Socket }
 
-// FIXME hardcodes the sed suffix.
-func FindBytes(x Path) []byte {
-  bytes := x.SlurpBytes()
-  if bytes == nil { bytes = slurpSedSuffix(x) }
-  return bytes
-}
-
 // HandleRead handles a read request assuming that data is the entire file content.
 // It adjusts the amount returned in resp according to req.Offset and req.Size.
 func HandleRead(req *f.ReadRequest, resp *f.ReadResponse, data []byte) {
@@ -68,21 +61,6 @@ func (x Path) ModePermBits() os.FileMode {
 
 func NewFilePerms(bits uint32) os.FileMode {
   return os.FileMode(bits) & os.ModePerm
-}
-
-func splitSedSuffix(p Path) (Path, string) {
-  return p.SplitAround(p.IndexOfByte('#'))
-}
-
-func slurpSedSuffix(p Path) []byte {
-  subpath, cmd := splitSedSuffix(p)
-  if cmd != "" {
-    res := Exec("sed", "-ne", cmd, subpath.Path)
-    if res.Success() {
-      return res.Stdout
-    }
-  }
-  return nil
 }
 
 func direntType(x Path) f.DirentType {

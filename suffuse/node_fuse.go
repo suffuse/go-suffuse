@@ -2,7 +2,6 @@ package suffuse
 
 import (
   "github.com/suffuse/go-suffuse/suffuse/xattr"
-  "os"
   "golang.org/x/net/context"
   "bazil.org/fuse/fs"
   f "bazil.org/fuse"
@@ -25,24 +24,16 @@ func (x *Elem) Access(ctx context.Context, req *f.AccessRequest) error {
 func (x *Elem) Attr(ctx context.Context, attr *f.Attr) error {
   logD("Attr", "path", x.Path)
 
-     path := x.Path
-  fi, err := path.OsLstat()
-  var a f.Attr
-
-  if err != nil {
-    subpath, cmd := splitSedSuffix(path)
-    if cmd == "" {
-      return err
+  for _, rule := range Rules {
+    a := rule.MetaData(x.Path)
+    if a != nil {
+      *attr = *a
+      return nil
     }
-    fi, err = subpath.OsStat()
-    a = GoFileInfoToFuseAttr(fi)
-    a.Size = uint64(len(slurpSedSuffix(path)))
-  } else {
-    a = GoFileInfoToFuseAttr(fi)
   }
 
-  *attr = a
-  return nil
+  _, err := x.Path.OsStat()
+  return err
 }
 
 func (x *Elem) Lookup(ctx context.Context, name string) (fs.Node, error) {
@@ -51,39 +42,53 @@ func (x *Elem) Lookup(ctx context.Context, name string) (fs.Node, error) {
 
   var a f.Attr
   err := x.Attr(ctx, &a)
-  if err != nil { return nil, f.ENOENT }
+  if err != nil { return nil, err } // f.ENOENT }
   return Vnode(child), nil
 }
 
-func (x *Elem) ReadDirAll(ctx context.Context) (dirents []f.Dirent, err error) {
+func (x *Elem) ReadDirAll(ctx context.Context) ([]f.Dirent, error) {
   logD("ReadDirAll", "path", x.Path)
 
-  dirents = DirChildren(x.Path)
-  if dirents == nil { err = ENOTDIR }
-  return
-}
-func (x *Elem) Readlink(ctx context.Context, req *f.ReadlinkRequest) (s string, err error) {
-  logD("Readlink", "path", x.Path)
-
-  if x.IsLink() {
-    return os.Readlink(x.Path.Path)
-  } else {
-    s = ""
-    err = EINVAL
+  for _, rule := range Rules {
+    children := rule.DirData(x.Path)
+    if children != nil { return children, nil }
   }
-  return //"", EINVAL
+  return nil, ENOTDIR
+}
+func (x *Elem) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, error) {
+  path := x.Path
+  logD("Readlink", "path", path)
+
+  for _, rule := range Rules {
+    target := rule.LinkData(path)
+    if target != nil { return target.Path, nil }
+  }
+  return "", EINVAL
 }
 func (x *Elem) Read(ctx context.Context, req *f.ReadRequest, resp *f.ReadResponse) error {
-  logD("Read", "path", x.Path, "req", *req)
-  bytes := FindBytes(x.Path)
-  HandleRead(req, resp, bytes)
+  path := x.Path
+  logD("Read", "path", path, "req", *req)
+
+  for _, rule := range Rules {
+    bytes := rule.FileData(path)
+    if bytes != nil {
+      HandleRead(req, resp, bytes)
+      return nil
+    }
+  }
   return nil
 }
-func (x *Elem) ReadAll(ctx context.Context) (bytes []byte, err error) {
-  logD("ReadAll", "path", x.Path)
-  bytes = FindBytes(x.Path)
-  if bytes == nil { err = f.ENOENT }
-  return
+func (x *Elem) ReadAll(ctx context.Context) ([]byte, error) {
+  path := x.Path
+  logD("ReadAll", "path", path)
+
+  for _, rule := range Rules {
+    bytes := rule.FileData(path)
+    if bytes != nil {
+      return bytes, nil
+    }
+  }
+  return nil, f.ENOENT
 }
 
 /** Write ops.
