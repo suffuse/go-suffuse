@@ -31,6 +31,16 @@ func AssertEq(x interface{}, y interface{}) {
   }
 }
 
+/** Returns the first non-nil error of all passed,
+ *  or nil if they're all nil.
+ */
+func FindError(errors ...error) error {
+  for _, e := range errors {
+    if e != nil { return e }
+  }
+  return nil
+}
+
 func NewErr(text string) error { return errors.New(text) }
 
 func GetStack() string {
