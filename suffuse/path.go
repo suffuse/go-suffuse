@@ -11,8 +11,6 @@ import (
 type Path struct {
   Path string
 }
-type SfsWalkFunc func(string, os.FileInfo) string
-
 func NewPath(path string) Path {
   return Path { path }
 }
@@ -23,12 +21,6 @@ func NewPaths(paths ...string) []Path {
 }
 func Cwd() Path        { return MaybePath(os.Getwd()) }
 func CwdNoLinks() Path { return Cwd().EvalSymlinks()  }
-
-var RootPath         = NewPath("/")
-var DotPath          = NewPath(".")
-var DotDotPath       = NewPath("..")
-var DefaultFilePerms = os.FileMode(0644)
-var DefaultDirPerms  = os.FileMode(0755)
 
 func (x Path) MaybeNewPath(result string, err error) Path {
   if err != nil { return x }
@@ -169,7 +161,7 @@ func (x Path) ReadDirnodes() []os.FileInfo {
 func (x Path) Walk(walkFn filepath.WalkFunc) error {
   return filepath.Walk(x.Path, walkFn)
 }
-func (x Path) WalkCollect(f SfsWalkFunc) Lines {
+func (x Path) WalkCollect(f func(string, os.FileInfo) string) Lines {
   res := make([]string, 0)
   x.Walk(
     func(path string, info os.FileInfo, err error) error {

@@ -13,9 +13,6 @@ import (
   "runtime"
 )
 
-// TODO - actually delete on exit.
-var deleteOnExit = make([]Path, 0)
-
 func Println(a ...interface{})                       { fmt.Println(a...)                           }
 func Printf(format string, a ...interface{})         { fmt.Printf(format, a...)                    }
 func Printfln(format string, a ...interface{})       { fmt.Printf(format + "\n", a...)             }
