@@ -6,17 +6,6 @@ import (
   f "bazil.org/fuse"
 )
 
-func (x *Elem) GetPath() Path         { return x.Path               }
-func (x *Elem) GetType() f.DirentType { return x.Typ                }
-
-func (x *Elem) IsBlockDev() bool      { return x.Typ == f.DT_Block  }
-func (x *Elem) IsCharDev() bool       { return x.Typ == f.DT_Char   }
-func (x *Elem) IsDir()  bool          { return x.Typ == f.DT_Dir    }
-func (x *Elem) IsFifo() bool          { return x.Typ == f.DT_FIFO   }
-func (x *Elem) IsFile() bool          { return x.Typ == f.DT_File   }
-func (x *Elem) IsLink() bool          { return x.Typ == f.DT_Link   }
-func (x *Elem) IsSocket() bool        { return x.Typ == f.DT_Socket }
-
 // HandleRead handles a read request assuming that data is the entire file content.
 // It adjusts the amount returned in resp according to req.Offset and req.Size.
 func HandleRead(req *f.ReadRequest, resp *f.ReadResponse, data []byte) {
@@ -32,7 +21,7 @@ func HandleRead(req *f.ReadRequest, resp *f.ReadResponse, data []byte) {
   resp.Data = resp.Data[:n]
 }
 
-func (x *Elem) String() string { return x.Path.Path }
+func (x *IdNode) String() string { return x.Path.Path }
 
 func attrString(path Path, a f.Attr) string {
   format := StripMargin('|', `

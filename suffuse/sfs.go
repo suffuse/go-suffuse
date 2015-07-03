@@ -10,6 +10,17 @@ const (
   SfsConfigFileName = ".sfs"
 )
 
+var NoPath Path    = NewPath("")
+var NoNode *IdNode = NewIdNode(NoPath)
+
+/** Sfs == Suffuse File System.
+ */
+type Sfs struct {
+  Mountpoint Path
+  RootNode fs.Node
+  Connection *fuse.Conn
+}
+
 // There are two approaches to writing a FUSE file system.  The first is to speak
 // the low-level message protocol, reading from a Conn using ReadRequest and
 // writing using the various Respond methods.  This approach is closest to
@@ -34,7 +45,7 @@ func (u *Sfs) Destroy(ctx context.Context) {
 
 func (u *Sfs) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
   logD("Statfs")
-  stat, err := u.RootNode.GetPath().SysStatfs()
+  stat, err := RootPath.SysStatfs()
   if err != nil { return err }
   *resp = SysStatfsToFuseStatfs(stat)
   return nil

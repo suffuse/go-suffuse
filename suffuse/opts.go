@@ -37,9 +37,14 @@ func (opts SfsOpts) Create() (Sfs, error) {
   c, err := fuse.Mount(mnt.Path, mount_opts...)
   if err != nil { return Sfs{}, err }
 
+  paths := opts.GetPaths()
+  // Exactly one incoming path for the moment.
+  // Eventually more than one could mean a union mount.
+  if len(paths) != 1 { UsageAndExit() }
+
   mfs := Sfs {
     Mountpoint : mnt,
-    RootNode   : NewUnion(opts.GetPaths()...),
+    RootNode   : NewIdNode(paths[0]),
     Connection : c,
   }
 
