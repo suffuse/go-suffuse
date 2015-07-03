@@ -6,13 +6,6 @@ import (
   "bazil.org/fuse"
 )
 
-const (
-  SfsConfigFileName = ".sfs"
-)
-
-var NoPath Path    = NewPath("")
-var NoNode *IdNode = NewIdNode(NoPath)
-
 /** Sfs == Suffuse File System.
  */
 type Sfs struct {

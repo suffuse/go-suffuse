@@ -37,14 +37,13 @@ func (opts SfsOpts) Create() (Sfs, error) {
   c, err := fuse.Mount(mnt.Path, mount_opts...)
   if err != nil { return Sfs{}, err }
 
-  paths := opts.GetPaths()
   // Exactly one incoming path for the moment.
   // Eventually more than one could mean a union mount.
-  if len(paths) != 1 { UsageAndExit() }
+  if len(opts.Args) != 1 { UsageAndExit() }
 
   mfs := Sfs {
     Mountpoint : mnt,
-    RootNode   : NewIdNode(paths[0]),
+    RootNode   : NewIdNode(NewPath(opts.Args[0])),
     Connection : c,
   }
 
@@ -68,19 +67,12 @@ func (opts SfsOpts) GetMountpoint() Path {
   }
 }
 
-func (opts SfsOpts) GetPaths() []Path {
-  if len(opts.Args) == 0 { UsageAndExit() }
-  xs := make([]Path, len(opts.Args))
-  for i, p := range opts.Args { xs[i] = NewPath(p) }
-  return xs
-}
-
 func ParseSfsOpts() SfsOpts {
   opts := SfsOpts{}
 
-  flag.StringVar(&opts.Config, "c", "", "suffuse config file")
+  // flag.StringVar(&opts.Config, "c", "", "suffuse config file")
+  // flag.StringVar(&opts.ExcludeRegex, "x", "", "name exclusion regex")
   flag.StringVar(&opts.Mountpoint, "m", "", "mount point")
-  flag.StringVar(&opts.ExcludeRegex, "x", "", "name exclusion regex")
   flag.StringVar(&opts.VolName, "n", "", "volume name (OSX only)")
   flag.BoolVar(&opts.Scratch, "t", false, "create scratch directory as mount point")
   flag.BoolVar(&opts.Verbose, "v", false, "log at INFO level")

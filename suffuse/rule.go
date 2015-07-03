@@ -16,14 +16,6 @@ type Rule interface {
   LinkData(Path)*Path
 }
 
-/** Eventually we'll read this kind of information out of a config
- *  file, but for now it's hardcoded here.
- */
-var Rules = []Rule {
-  IdRule{},  // The identity fs - passes underlying paths through unchanged
-  SedRule{}, // The sed fs - parses a '#...' suffix and applies it to the prefix path
-}
-
 /** Default implementations. A Rule struct can embed BaseRule
  *  and then not have to implement irrelevant methods. There's
  *  no default for Metadata because a filesystem which never
