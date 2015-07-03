@@ -7,6 +7,6 @@ goroot="$(dirname "$bindir")"
 what=${1:-test}
 shift
 
-which -s spy || go get github.com/jpillora/spy
+which spy >/dev/null || go get github.com/jpillora/spy
 
 spy --dir "$goroot" "$bindir/$what.sh" "$@"

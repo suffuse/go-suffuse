@@ -125,10 +125,13 @@ _Kill the suffuse instance_
 Development
 ===========
 
-Make sure your local checkout is located in:
-`$GOPATH/src/github.com/suffuse/go-suffuse`
+Make sure that:
+- your local checkout is located at: `$GOPATH/src/github.com/suffuse/go-suffuse`
+- the `$GOROOT/bin` directory is on your `$PATH`
 
 ```
+# Install dependencies
+go get gopkg.in/check.v1
 # Continuous testing
 bin/cc.sh
 # Docker container works somewhat
