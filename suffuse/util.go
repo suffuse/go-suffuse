@@ -13,9 +13,6 @@ import (
   "runtime"
 )
 
-// TODO - actually delete on exit.
-var deleteOnExit = make([]Path, 0)
-
 func Println(a ...interface{})                       { fmt.Println(a...)                           }
 func Printf(format string, a ...interface{})         { fmt.Printf(format, a...)                    }
 func Printfln(format string, a ...interface{})       { fmt.Printf(format + "\n", a...)             }
@@ -29,6 +26,16 @@ func AssertEq(x interface{}, y interface{}) {
   if (x != y) {
     panic(fmt.Sprintf("%v: %T != %v: %T", x, x, y, y))
   }
+}
+
+/** Returns the first non-nil error of all passed,
+ *  or nil if they're all nil.
+ */
+func FindError(errors ...error) error {
+  for _, e := range errors {
+    if e != nil { return e }
+  }
+  return nil
 }
 
 func NewErr(text string) error { return errors.New(text) }
