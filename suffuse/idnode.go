@@ -9,6 +9,19 @@ import (
   f "bazil.org/fuse"
 )
 
+/** Identity node is a wrapper around another Path.
+ */
+type IdNode struct {
+  fs.NodeRef
+  Path Path
+}
+
+func NewIdNode(path Path) *IdNode {
+  return &IdNode { Path: path }
+}
+
+func (x *IdNode) String() string { return x.Path.Path }
+
 // Access checks whether the calling context has permission for
 // the given operations on the receiver. If so, Access should
 // return nil. If not, Access should return EPERM.
@@ -18,7 +31,7 @@ import (
 // implemented, the Node behaves as if it always returns nil
 // (permission granted), relying on checks in Open instead.
 // TODO - permissions check.
-func (x *Elem) Access(ctx context.Context, req *f.AccessRequest) error {
+func (x *IdNode) Access(ctx context.Context, req *f.AccessRequest) error {
   logD("Access", "path", x.Path)
   return nil
 }
@@ -92,7 +105,7 @@ func setattrTruncate(path Path, req *f.SetattrRequest) error {
 // req.Valid is a bitmask of what fields are actually being set.
 // For example, the method should not change the mode of the file
 // unless req.Valid.Mode() is true.
-func (x *Elem) Setattr(ctx context.Context, req *f.SetattrRequest, resp *f.SetattrResponse) error {
+func (x *IdNode) Setattr(ctx context.Context, req *f.SetattrRequest, resp *f.SetattrResponse) error {
   logD("Setattr", "path", x.Path, "req", *req)
   // Not Yet Implemented:
   // req.Valid.{ Handle, LockOwner, Crtime, Chgtime, Bkuptime, Flags }
@@ -105,76 +118,83 @@ func (x *Elem) Setattr(ctx context.Context, req *f.SetattrRequest, resp *f.Setat
   )
 }
 
-func (x *Elem) Attr(ctx context.Context, attr *f.Attr) error {
+func (x *IdNode) Attr(ctx context.Context, attr *f.Attr) error {
   logD("Attr", "path", x.Path)
 
-     path := x.Path
-  fi, err := path.OsLstat()
-  var a f.Attr
-
-  if err != nil {
-    subpath, cmd := splitSedSuffix(path)
-    if cmd == "" {
-      return err
+  for _, rule := range Rules {
+    a := rule.MetaData(x.Path)
+    if a != nil {
+      *attr = *a
+      return nil
     }
-    fi, err = subpath.OsStat()
-    a = GoFileInfoToFuseAttr(fi)
-    a.Size = uint64(len(slurpSedSuffix(path)))
-  } else {
-    a = GoFileInfoToFuseAttr(fi)
   }
 
-  *attr = a
-  return nil
+  _, err := x.Path.OsStat()
+  return err
 }
 
-func (x *Elem) Lookup(ctx context.Context, name string) (fs.Node, error) {
+func (x *IdNode) Lookup(ctx context.Context, name string) (fs.Node, error) {
   logD("Lookup", "path", x.Path, "name", name)
   child := x.Path.Join(name)
 
   var a f.Attr
   err := x.Attr(ctx, &a)
+
   MaybeLog(err)
 
-  if err != nil { return nil, err }
-  return Vnode(child), nil
+  if err != nil { return nil, err } // f.ENOENT }
+  return NewIdNode(child), nil
 }
 
-func (x *Elem) ReadDirAll(ctx context.Context) (dirents []f.Dirent, err error) {
+func (x *IdNode) ReadDirAll(ctx context.Context) ([]f.Dirent, error) {
   logD("ReadDirAll", "path", x.Path)
 
-  dirents = DirChildren(x.Path)
-  if dirents == nil { err = ENOTDIR }
-  return
-}
-func (x *Elem) Readlink(ctx context.Context, req *f.ReadlinkRequest) (s string, err error) {
-  logD("Readlink", "path", x.Path)
-
-  if x.IsLink() {
-    return os.Readlink(x.Path.Path)
-  } else {
-    s = ""
-    err = EINVAL
+  for _, rule := range Rules {
+    children := rule.DirData(x.Path)
+    if children != nil { return children, nil }
   }
-  return //"", EINVAL
+  return nil, ENOTDIR
 }
-func (x *Elem) Read(ctx context.Context, req *f.ReadRequest, resp *f.ReadResponse) error {
-  logD("Read", "path", x.Path, "req", *req)
-  bytes := FindBytes(x.Path)
-  HandleRead(req, resp, bytes)
+func (x *IdNode) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, error) {
+  path := x.Path
+  logD("Readlink", "path", path)
+
+  for _, rule := range Rules {
+    target := rule.LinkData(path)
+    if target != nil { return target.Path, nil }
+  }
+  return "", EINVAL
+}
+func (x *IdNode) Read(ctx context.Context, req *f.ReadRequest, resp *f.ReadResponse) error {
+  path := x.Path
+  logD("Read", "path", path, "req", *req)
+
+  for _, rule := range Rules {
+    bytes := rule.FileData(path)
+    if bytes != nil {
+      HandleRead(req, resp, bytes)
+      return nil
+    }
+  }
   return nil
 }
-func (x *Elem) ReadAll(ctx context.Context) (bytes []byte, err error) {
-  logD("ReadAll", "path", x.Path)
-  bytes = FindBytes(x.Path)
-  if bytes == nil { err = f.ENOENT }
-  return
+func (x *IdNode) ReadAll(ctx context.Context) ([]byte, error) {
+  path := x.Path
+  logD("ReadAll", "path", path)
+
+  for _, rule := range Rules {
+    bytes := rule.FileData(path)
+    if bytes != nil {
+      return bytes, nil
+    }
+  }
+  return nil, f.ENOENT
 }
 
 /** Write ops.
  */
 
-func (x *Elem) Mkdir(ctx context.Context, req *f.MkdirRequest) (fs.Node, error) {
+func (x *IdNode) Mkdir(ctx context.Context, req *f.MkdirRequest) (fs.Node, error) {
   logD("Mkdir", "path", x.Path, "req", *req)
 
   name := req.Name
@@ -186,32 +206,32 @@ func (x *Elem) Mkdir(ctx context.Context, req *f.MkdirRequest) (fs.Node, error) 
   MaybeLog(err)
 
   if err != nil { return nil, err }
-  return Dir(path), nil
+  return NewIdNode(path), nil
 }
-func (x *Elem) Create(ctx context.Context, req *f.CreateRequest, resp *f.CreateResponse) (fs.Node, fs.Handle, error) {
+func (x *IdNode) Create(ctx context.Context, req *f.CreateRequest, resp *f.CreateResponse) (fs.Node, fs.Handle, error) {
   logD("Create", "path", x.Path, "req", *req)
   return nil, nil, f.ENOTSUP
 }
 
 /** Xattr ops.
  */
-func (x *Elem) Getxattr(ctx context.Context, req *f.GetxattrRequest, resp *f.GetxattrResponse) error {
+func (x *IdNode) Getxattr(ctx context.Context, req *f.GetxattrRequest, resp *f.GetxattrResponse) error {
   logD("Getxattr", "path", x.Path, "xattr", req.Name)
   bytes := xattr.Get(x.Path.Path, req.Name)
   if bytes != nil { resp.Xattr = bytes }
   return nil
 }
-func (x *Elem) Listxattr(ctx context.Context, req *f.ListxattrRequest, resp *f.ListxattrResponse) error {
+func (x *IdNode) Listxattr(ctx context.Context, req *f.ListxattrRequest, resp *f.ListxattrResponse) error {
   logD("Listxattr", "path", x.Path)
   names := xattr.List(x.Path.Path)
   if names != nil { resp.Append(names...) }
   return nil
 }
-func (x *Elem) Setxattr(ctx context.Context, req *f.SetxattrRequest) error {
+func (x *IdNode) Setxattr(ctx context.Context, req *f.SetxattrRequest) error {
   logD("Setxattr", "path", x.Path, "name", req.Name, "value", string(req.Xattr))
   return xattr.Set(x.Path.Path, req.Name, req.Xattr)
 }
-func (x *Elem) Removexattr(ctx context.Context, req *f.RemovexattrRequest) error {
+func (x *IdNode) Removexattr(ctx context.Context, req *f.RemovexattrRequest) error {
   logD("Removexattr", "path", x.Path, "name", req.Name)
   return xattr.Remove(x.Path.Path, req.Name)
 }
