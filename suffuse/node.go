@@ -21,8 +21,6 @@ func HandleRead(req *f.ReadRequest, resp *f.ReadResponse, data []byte) {
   resp.Data = resp.Data[:n]
 }
 
-func (x *IdNode) String() string { return x.Path.Path }
-
 func attrString(path Path, a f.Attr) string {
   format := StripMargin('|', `
     |%v:%v {

@@ -18,6 +18,8 @@ func NewIdNode(path Path) *IdNode {
   return &IdNode { Path: path }
 }
 
+func (x *IdNode) String() string { return x.Path.Path }
+
 func (x *IdNode) Access(ctx context.Context, req *f.AccessRequest) error {
   logD("Access", "path", x.Path)
 
