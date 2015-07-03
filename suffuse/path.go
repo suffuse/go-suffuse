@@ -81,6 +81,14 @@ func (x Path) OsOpenFile(flag int, perm os.FileMode) (*os.File, error) { return 
 func (x Path) OsReadLink() (string, error)                             { return os.Readlink(x.Path)             }
 func (x Path) OsStat() (os.FileInfo, error)                            { return os.Stat(x.Path)                 }
 
+func (x Path) OsStatAtimeMtime() (atime time.Time, mtime time.Time) {
+  // The go os.FileMode distillation of the contents of Stat_t doesn't
+  // expose Atimespec, so we have to plunge into the platform-dependent part.
+  stat, err := x.SysStatFile()
+  if err != nil { return }
+  return SysAtimeMtime(&stat)
+}
+
 func (x Path) IndexOfByte(b byte) int { return strings.IndexByte(x.Path, '#') }
 
 func (x Path) SplitAround(idx int) (Path, string) {

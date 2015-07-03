@@ -1,6 +1,7 @@
 package suffuse
 
 import (
+  "time"
   sys "syscall"
   "bazil.org/fuse"
 )
@@ -22,6 +23,10 @@ func SetSysAttributes(sp *sys.Stat_t, a *fuse.Attr) {
   a.Crtime = TimespecToGoTime(sp.Birthtimespec) // time of creation (OS X only)
   a.Ctime  = TimespecToGoTime(sp.Ctimespec)     // time of last inode change
   a.Flags  = sp.Flags
+}
+
+func SysAtimeMtime(sp *sys.Stat_t) (atime time.Time, mtime time.Time) {
+  return TimespecToGoTime(sp.Atimespec), TimespecToGoTime(sp.Mtimespec)
 }
 
 func (x Path) SysUnmount() error {
