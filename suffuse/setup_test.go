@@ -87,7 +87,7 @@ func (s *Tsfs) SetUpSuite(c *C) {
 }
 
 func (s *Tsfs) TearDownSuite(c *C) {
-  Exec("umount", "-f", s.Out.Path)
+  s.Out.SysUnmount()
   logI("TearDownSuite(%s)\n", c.TestName())
 }
 func (s *Tsfs) SetUpTest(c *C) {
