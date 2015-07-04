@@ -85,9 +85,9 @@ func (x Path) OsStatAtimeMtime() (atime time.Time, mtime time.Time) {
   return SysAtimeMtime(&stat)
 }
 
-func (x Path) IndexOfByte(b byte) int   { return strings.IndexByte(string(x), '#') }
-func (x Path) Slice(start, end int)Path { return Path(string(x)[start:end])        }
-func (x Path) Strlen()int               { return len(string(x))                    }
+func (x Path) IndexOfByte(b byte) int   { return strings.IndexByte(string(x), b) }
+func (x Path) Slice(start, end int)Path { return Path(string(x)[start:end])      }
+func (x Path) Strlen()int               { return len(string(x))                  }
 
 func (x Path) SplitAround(idx int) (Path, string) {
   max := x.Strlen() - 1
