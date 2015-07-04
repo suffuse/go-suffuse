@@ -132,6 +132,7 @@ Make sure that:
 ```
 # Install dependencies
 go get gopkg.in/check.v1
+go get github.com/satori/go.uuid
 # Continuous testing
 bin/cc.sh
 # Docker container works somewhat
