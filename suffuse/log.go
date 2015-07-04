@@ -22,10 +22,3 @@ func level(max lg.Lvl) lg.Logger {
 }
 
 func SetLogLevel(max lg.Lvl) { sfsLogger = level(max) }
-func (opts SfsOpts) GetLogLevel() lg.Lvl {
-  switch {
-    case opts.Debug   : return lg.LvlDebug
-    case opts.Verbose : return lg.LvlInfo
-    default           : return lg.LvlWarn
-  }
-}

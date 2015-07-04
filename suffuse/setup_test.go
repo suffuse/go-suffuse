@@ -1,7 +1,6 @@
 package suffuse
 
 import (
-  "os"
   "testing"
   "strings"
   "runtime"
@@ -48,12 +47,10 @@ seq 1 10000 > bigfile.txt
 }
 
 func startFuse(args ...string) {
-  saved := os.Args
-  os.Args = args
-  opts := ParseSfsOpts()
-  os.Args = saved
+  conf, conf_err := CreateSfsConfig(args)
+  if conf_err != nil { return }
 
-  mfs, err := opts.Create()
+  mfs, err := NewSfs(conf)
   MaybePanic(err)
 
   go func() {
