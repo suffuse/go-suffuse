@@ -3,6 +3,11 @@ Suffuse client
 
 A raw snapshot of generic file virtualization in progress. Written in go.
 
+|OS    |Status|
+|------|------|
+|Linux |[![Build Status](https://travis-ci.org/suffuse/go-suffuse.svg?branch=master)](https://travis-ci.org/suffuse/go-suffuse)|
+
+
 Prerequisites
 =============
 
