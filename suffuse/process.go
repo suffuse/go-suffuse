@@ -1,7 +1,7 @@
 package suffuse
 
 import (
-  "github.com/codeskyblue/go-sh"
+  "os/exec"
   "github.com/shirou/gopsutil/process"
   "github.com/shirou/gopsutil/host"
 )
@@ -28,7 +28,6 @@ func ProcessTable() map[int32]string {
 type ExecResult struct {
   Err error
   Stdout []byte
-  Stderr []byte
 }
 
 func (x ExecResult) OneLine() string { return x.Lines().JoinWords()  }
@@ -40,18 +39,16 @@ func Exec(args ...string) ExecResult                { return ExecIn(Cwd(), args.
 func ExecBash(script string) ExecResult             { return ExecBashIn(Cwd(), script)         }
 func ExecBashIn(cwd Path, script string) ExecResult { return ExecIn(cwd, "bash", "-c", script) }
 
-func ExecIn(cwd Path, args ...string) (res ExecResult) {
-  res = ExecResult{}
+func ExecIn(cwd Path, args ...string) ExecResult {
+  var res = ExecResult{}
 
   if len(args) == 0 {
     res.Err = NewErr("no command")
   } else {
-    session := sh.NewSession()
-    session.SetDir(cwd.Path)
+    cmd := exec.Command(args[0], args[1:]...)
+    cmd.Dir = cwd.Path
 
-    v := make([]interface{}, len(args) - 1)
-    for i := range v { v[i] = args[i+1] }
-    bytes, err := session.Command(args[0], v...).Output()
+    bytes, err := cmd.Output()
 
     if err != nil {
       res.Err = err
@@ -59,7 +56,8 @@ func ExecIn(cwd Path, args ...string) (res ExecResult) {
       res.Stdout = bytes
     }
   }
-  return
+
+  return res
 }
 
 func GitWordDiff(p1 Path, p2 Path) ExecResult {
