@@ -1,0 +1,16 @@
+language: go
+
+go:
+  - 1.4.1
+
+os:
+  - linux
+  - osx
+
+install:
+  - go get -t -v ./...
+  - sudo apt-get install -qq libfuse-dev pkg-config fuse user-mode-linux slirp
+  - sudo mknod /dev/fuse c 10 229
+  - sudo chmod 666 /dev/fuse
+
+script: bin/umltest.sh
