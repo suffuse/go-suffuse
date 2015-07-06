@@ -44,7 +44,7 @@ Installation
 **When you see ... it means literally three dots.** It's the go syntax for "all projects under this directory."
 
 ```
-go get github.com/suffuse/go-suffuse/cmd/suffuse
+go get -t github.com/suffuse/go-suffuse/cmd/suffuse
 ```
 
 Suffuse has been installed in `$GOPATH/bin`.
@@ -135,8 +135,6 @@ Make sure that:
 - the `$GOROOT/bin` directory is on your `$PATH`
 
 ```
-# Install dependencies
-go get gopkg.in/check.v1
 # Continuous testing
 bin/cc.sh
 # Docker container works somewhat
