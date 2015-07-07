@@ -3,14 +3,9 @@ package suffuse
 import (
   "fmt"
   "os"
-  "io"
   "io/ioutil"
-  "bufio"
   "log"
-  "time"
-  "strconv"
   "errors"
-  "runtime"
 )
 
 func Println(a ...interface{})                       { fmt.Println(a...)                           }
@@ -39,49 +34,6 @@ func FindError(errors ...error) error {
 }
 
 func NewErr(text string) error { return errors.New(text) }
-
-func GetStack() string {
-  buf := make([]byte, 16384)
-  bytes := runtime.Stack(buf, true)
-  return string(buf[0:bytes])
-}
-func SplitNanoTime(t time.Time) (sec uint64, nsec uint32) {
-  nano := t.UnixNano()
-  sec = uint64(nano / 1e9)
-  nsec = uint32(nano % 1e9)
-  return
-}
-func ForeachLine(r io.ReadCloser, f func(string)) {
-  scanner := bufio.NewScanner(r)
-  for scanner.Scan() { f(scanner.Text()) }
-}
-func StrTake(s string, n int) string {
-  if len(s) <= n { return s } else { return s[0:n] }
-}
-func TruncToAndLeftJust(s string, width int64) string {
-  format := "%-" + strconv.FormatInt(width, 10) + "s"
-  return fmt.Sprintf(format, TruncTo(s, width))
-}
-func TruncTo(s string, max int64) string {
-  strlen := int64(len(s))
-  if (strlen < max) {
-    return s;
-  } else {
-    return s[0:max-3] + "..."
-  }
-}
-
-/** TODO: better types than "int" for uid/gid etc.
- */
-func Getegid() int              { return os.Getegid()     }
-func Geteuid() int              { return os.Geteuid()     }
-func Getgid() int               { return os.Getgid()      }
-func Getgroups() ([]int, error) { return os.Getgroups()   }
-func Getpagesize() int          { return os.Getpagesize() }
-func Getpid() int               { return os.Getpid()      }
-func Getppid() int              { return os.Getppid()     }
-func Getuid() int               { return os.Getuid()      }
-func Hostname() (string, error) { return os.Hostname()    }
 
 func ScratchDir() Path {
   dir, err := ioutil.TempDir("", "suffuse")

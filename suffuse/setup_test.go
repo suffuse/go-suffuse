@@ -79,9 +79,7 @@ func AssertSameFile(c *C, p1, p2 Path) {
 
 func (s *Tsfs) SetUpSuite(c *C) {
   logI("SetUpSuite(%s)\n", *s)
-
   PsutilHostDump()
-  // fmt.Println(GetStack())
 
   s.In  = NewPath(c.MkDir())
   s.Out = NewPath(c.MkDir())
