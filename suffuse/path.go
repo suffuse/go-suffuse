@@ -183,3 +183,9 @@ func (x Path) WalkCollect(f func(string, os.FileInfo) string) Lines {
   )
   return NewLines(res...)
 }
+
+// https://github.com/golang/go/issues/1312
+func (x Path) FileExists() bool {
+  _, err := x.OsStat()
+  return err == nil
+}
