@@ -6,6 +6,8 @@ import (
   "strings"
   "runtime"
   . "gopkg.in/check.v1"
+  "math/rand"
+  "time"
 )
 
 var _ = Suite(&Tsfs{})
@@ -80,6 +82,9 @@ func AssertSameFile(c *C, p1, p2 Path) {
 func (s *Tsfs) SetUpSuite(c *C) {
   logI("SetUpSuite(%s)\n", *s)
   PsutilHostDump()
+
+  // rand.Int() is used by the check library. Without this line it not so random...
+  rand.Seed(time.Now().UnixNano())
 
   s.In  = NewPath(c.MkDir())
   s.Out = NewPath(c.MkDir())
