@@ -2,86 +2,126 @@ package suffuse
 
 import (
   "flag"
-  "os"
-  "bazil.org/fuse"
+  lg "gopkg.in/inconshreveable/log15.v2"
 )
 
-type SfsOpts struct {
-  Config, Mountpoint, ExcludeRegex, VolName string
+type sfsOpts struct {
+  printUsage func()
+  Config, Mountpoint, VolName string
   Scratch, Verbose, Debug bool
   Args []string
 }
 
-func UsageAndExit() {
-  flag.Usage()
-  os.Exit(2)
+type SfsConfig struct {
+  VolName string
+  Config *Path
+  Mountpoint Path
+  LogLevel lg.Lvl
+  Paths []Path
 }
 
-func (opts SfsOpts) Create() (Sfs, error) {
-  SetLogLevel(opts.GetLogLevel())
-         mnt := opts.GetMountpoint()
-  mount_opts := []fuse.MountOption { fuse.FSName("suffuse") }
+func CreateSfsConfig(args []string) (*SfsConfig, *SfsConfigError) {
 
-  mount_opts = append(mount_opts, PlatformOptions()...)
-  if opts.VolName != "" {
-    mount_opts = append(mount_opts,
-      fuse.LocalVolume(),
-      fuse.VolumeName(opts.VolName),
-    )
-  }
-  if opts.Config != "" {
-    configFileOpts := ReadJsonFile(NewPath(opts.Config))
-    Echoerr("%v", configFileOpts)
+  opts, err := optsFromArgs(args)
+  if err != nil { return nil, err }
+
+  err = validate(opts)
+  if err != nil { return nil, err }
+
+  return configFromOpts(opts)
+}
+
+func optsFromArgs(args []string) (*sfsOpts, *SfsConfigError) {
+  fs := flag.NewFlagSet("suffuse", flag.ContinueOnError)
+
+  fs.Usage = func () {
+    Echoerr("Usage: %s <options> [path path ...]\n", args[0])
+    fs.PrintDefaults()
   }
 
-  c, err := fuse.Mount(mnt.Path, mount_opts...)
-  if err != nil { return Sfs{}, err }
+  opts := &sfsOpts{}
+  opts.printUsage = fs.Usage
+
+  fs.StringVar(&opts.Config, "c", "", "suffuse config file")
+  fs.StringVar(&opts.Mountpoint, "m", "", "mount point")
+  fs.StringVar(&opts.VolName, "n", "", "volume name (OSX only)")
+  fs.BoolVar(&opts.Scratch, "t", false, "create scratch directory as mount point")
+  fs.BoolVar(&opts.Verbose, "v", false, "log at INFO level")
+  fs.BoolVar(&opts.Debug, "d", false, "log at DEBUG level")
+
+  err := fs.Parse(args[1:])
+  if err != nil {
+    // Parse has already printed the problem and usage, there is no way to tell it not to do that
+    return nil, &SfsConfigError{err: err.Error(), usage: nil}
+  }
+
+  opts.Args = fs.Args()
+  return opts, nil
+}
+
+func validate(opts *sfsOpts) *SfsConfigError {
+  exists := func (path string, msg string) *SfsConfigError {
+    if (!NewPath(path).FileExists()) { return opts.newError(Sprintf(msg, path)) }
+    return nil
+  }
 
   // Exactly one incoming path for the moment.
   // Eventually more than one could mean a union mount.
-  if len(opts.Args) != 1 { UsageAndExit() }
+  if len(opts.Args) != 1 { return opts.newError("Suffuse currently accepts a single path") }
 
-  mfs := Sfs {
+  if err := exists(opts.Mountpoint, "Mountpoint '%s' does not exist" ); err != nil { return err }
+  if err := exists(opts.Config    , "Config file '%s' does not exist"); err != nil && opts.Config != "" { return err }
+
+  for _, path := range opts.Args {
+    if err := exists(path, "Path '%s' does not exist"); err != nil { return err }
+  }
+
+  return nil
+}
+
+func configFromOpts(opts *sfsOpts) (*SfsConfig, *SfsConfigError) {
+
+  determineMountPoint := func() (Path, *SfsConfigError) {
+    switch {
+      case opts.Scratch          : return ScratchDir(), nil
+      case opts.Mountpoint != "" : return NewPath(opts.Mountpoint), nil
+      default                    : return Path{}, opts.newError("Mountpoint can not be empty if the scratch flag is false")
+    }
+  }
+
+  determineLogLevel := func() lg.Lvl {
+    switch {
+      case opts.Debug   : return lg.LvlDebug
+      case opts.Verbose : return lg.LvlInfo
+      default           : return lg.LvlWarn
+    }
+  }
+
+  mnt, err := determineMountPoint()
+  if err != nil { return nil, err }
+
+  return &SfsConfig {
+    VolName    : opts.VolName,
+    Config     : NewPathRef(opts.Config),
     Mountpoint : mnt,
-    RootNode   : NewIdNode(NewPath(opts.Args[0])),
-    Connection : c,
-  }
-
-  /** Start a goroutine which looks for INT/TERM and
-   *  calls unmount on the filesystem. Otherwise ctrl-C
-   *  leaves us with ghost mounts which outlive the process.
-   */
-  trap := func (sig os.Signal) {
-    Echoerr("Caught %s - forcing unmount(2) of %s\n", sig, mfs.Mountpoint)
-    mfs.Unmount()
-  }
-  TrapExit(trap)
-  return mfs, nil
+    Paths      : NewPaths(opts.Args...),
+    LogLevel   : determineLogLevel(),
+  }, nil
 }
 
-func (opts SfsOpts) GetMountpoint() Path {
-  switch {
-    case opts.Scratch          : return ScratchDir()
-    case opts.Mountpoint != "" : return NewPath(opts.Mountpoint)
-    default                    : UsageAndExit() ; return Path{}
-  }
+func (opts *sfsOpts) newError(msg string) *SfsConfigError {
+  return &SfsConfigError{msg, opts.printUsage}
 }
 
-func ParseSfsOpts() SfsOpts {
-  opts := SfsOpts{}
+type SfsConfigError struct {
+  err string
+  usage func()
+}
 
-  // flag.StringVar(&opts.Config, "c", "", "suffuse config file")
-  // flag.StringVar(&opts.ExcludeRegex, "x", "", "name exclusion regex")
-  flag.StringVar(&opts.Mountpoint, "m", "", "mount point")
-  flag.StringVar(&opts.VolName, "n", "", "volume name (OSX only)")
-  flag.BoolVar(&opts.Scratch, "t", false, "create scratch directory as mount point")
-  flag.BoolVar(&opts.Verbose, "v", false, "log at INFO level")
-  flag.BoolVar(&opts.Debug, "d", false, "log at DEBUG level")
-  flag.Usage = func () {
-    Echoerr("Usage: %s <options> [path path ...]\n", os.Args[0])
-    flag.PrintDefaults()
+func (e *SfsConfigError) Error() string { return e.err }
+func (e *SfsConfigError) PrintUsage()   {
+  if e.usage != nil {
+    Echoerr("%s\n", e.err)
+    e.usage()
   }
-  flag.Parse()
-  opts.Args = flag.Args()
-  return opts
 }

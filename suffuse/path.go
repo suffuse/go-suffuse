@@ -14,6 +14,9 @@ type Path struct {
 func NewPath(path string) Path {
   return Path { path }
 }
+func NewPathRef(path string) *Path {
+  if path == "" { return nil } else { return &Path{ path } }
+}
 func NewPaths(paths ...string) []Path {
   xs := make([]Path, len(paths))
   for i, p := range paths { xs[i] = NewPath(p) }
@@ -182,4 +185,10 @@ func (x Path) WalkCollect(f func(string, os.FileInfo) string) Lines {
     },
   )
   return NewLines(res...)
+}
+
+// https://github.com/golang/go/issues/1312
+func (x Path) FileExists() bool {
+  _, err := x.OsStat()
+  return err == nil
 }

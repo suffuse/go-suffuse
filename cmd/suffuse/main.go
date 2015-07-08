@@ -1,11 +1,18 @@
 package main
 
-import . "github.com/suffuse/go-suffuse/suffuse"
+import (
+  . "github.com/suffuse/go-suffuse/suffuse"
+  "os"
+)
 
 func main() {
-  opts := ParseSfsOpts()
+  conf, conf_err := CreateSfsConfig(os.Args)
+  if conf_err != nil {
+    conf_err.PrintUsage()
+    os.Exit(2)
+  }
 
-  mfs, err := opts.Create()
+  mfs, err := NewSfs(conf)
   MaybePanic(err)
 
   err = mfs.Serve()
