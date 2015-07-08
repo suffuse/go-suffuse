@@ -41,7 +41,7 @@ func (s *Tsfs) TestSameWithWalk(c *C) {
 }
 func (s *Tsfs) TestSameWithDiff(c *C) {
   c.Assert(GitWordDiff(s.In, s.Out).Slurp(), Equals, "")
-  c.Assert(Exec("diff", "-qr", s.In.Path, s.Out.Path).Err, IsNil)
+  c.Assert(Exec("diff", "-qr", string(s.In), string(s.Out)).Err, IsNil)
 }
 
 func (s *Tsfs) TestXattr(c *C) {
@@ -49,13 +49,13 @@ func (s *Tsfs) TestXattr(c *C) {
   switch runtime.GOOS {
     case "darwin" :
       Printfln("Running xattr test on darwin")
-      AssertExecSuccess(c, "xattr", "-w", "dog", "pony", s.Out.Path)
-      // c.Assert(Exec("xattr", "-w", "dog", "pony", s.Out.Path).Success(), Equals, true)
-      c.Assert(Exec("xattr", s.Out.Path).OneLine(), Equals, "dog")
-      c.Assert(Exec("xattr", "-l", s.Out.Path).OneLine(), Equals, "dog: pony")
-      c.Assert(Exec("xattr", "-p", "dog", s.Out.Path).OneLine(), Equals, "pony")
-      c.Assert(Exec("xattr", "-d", "dog", s.Out.Path).Success(), Equals, true)
-      c.Assert(Exec("xattr", "-l", s.Out.Path).OneLine(), Equals, "")
+      AssertExecSuccess(c, "xattr", "-w", "dog", "pony", string(s.Out))
+      // c.Assert(Exec("xattr", "-w", "dog", "pony", string(s.Out)).Success(), Equals, true)
+      c.Assert(Exec("xattr", string(s.Out)).OneLine(), Equals, "dog")
+      c.Assert(Exec("xattr", "-l", string(s.Out)).OneLine(), Equals, "dog: pony")
+      c.Assert(Exec("xattr", "-p", "dog", string(s.Out)).OneLine(), Equals, "pony")
+      c.Assert(Exec("xattr", "-d", "dog", string(s.Out)).Success(), Equals, true)
+      c.Assert(Exec("xattr", "-l", string(s.Out)).OneLine(), Equals, "")
     default:
       Printfln("Skipping xattr test on %s", runtime.GOOS)
   }

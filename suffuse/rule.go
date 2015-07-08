@@ -45,9 +45,9 @@ func (IdRule) DirData(path Path)[]fuse.Dirent {
   return DirChildren(path)
 }
 func (IdRule) LinkData(path Path)*Path {
-  target, err := os.Readlink(path.Path)
+  target, err := os.Readlink(string(path))
   if err != nil { return nil }
-  res := NewPath(target)
+  res := Path(target)
   return &res
 }
 
@@ -69,7 +69,7 @@ func (x SedRule) FileData(path Path)[]byte {
   subpath, cmd := x.split(path)
   if cmd == "" { return nil }
 
-  res := Exec("sed", "-ne", cmd, subpath.Path)
+  res := Exec("sed", "-ne", cmd, string(subpath))
   if res.Success() { return res.Stdout }
   return nil
 }

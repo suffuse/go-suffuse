@@ -41,7 +41,7 @@ func (s *Tsfs) TestPathSymlinkLogic(c *C) {
 
   // Create symlink "root/link2" -> "a/b/c"
   link2 := root.Join("link2")
-  link2.OsSymlink(NewPath("a/b/c"))
+  link2.OsSymlink(Path("a/b/c"))
 
   // Create a/b/c, resolve all links, and chdir into it.
   d.OsMkdirAll(NewFilePerms(0755))
@@ -49,7 +49,7 @@ func (s *Tsfs) TestPathSymlinkLogic(c *C) {
   d.OsChdir()
 
   // Create symlink "link3" -> ".", where "." is now $d.
-  link3 := NewPath("link3")
+  link3 := Path("link3")
   link3.OsSymlink(DotPath)
 
   // Ensure that $d, $(pwd), and "." all resolve to the same path.

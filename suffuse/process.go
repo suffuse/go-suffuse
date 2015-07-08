@@ -46,7 +46,7 @@ func ExecIn(cwd Path, args ...string) ExecResult {
     res.Err = NewErr("no command")
   } else {
     cmd := exec.Command(args[0], args[1:]...)
-    cmd.Dir = cwd.Path
+    cmd.Dir = string(cwd)
 
     bytes, err := cmd.Output()
 
@@ -61,5 +61,5 @@ func ExecIn(cwd Path, args ...string) ExecResult {
 }
 
 func GitWordDiff(p1 Path, p2 Path) ExecResult {
-  return Exec("git", "diff", "--no-index", "--word-diff", p1.Path, p2.Path)
+  return Exec("git", "diff", "--no-index", "--word-diff", string(p1), string(p2))
 }

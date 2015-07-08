@@ -33,17 +33,17 @@ func TrapExit (handler func(os.Signal)) {
 
 func (x Path) SysStatFile() (sys.Stat_t, error) {
   s := sys.Stat_t { }
-  err := sys.Stat(x.Path, &s)
+  err := sys.Stat(string(x), &s)
   return s, err
 }
 func (x Path) SysStatLink() (sys.Stat_t, error) {
   s := sys.Stat_t { }
-  err := sys.Lstat(x.Path, &s)
+  err := sys.Lstat(string(x), &s)
   return s, err
 }
 func (x Path) SysStatfs() (sys.Statfs_t, error) {
   s := sys.Statfs_t { }
-  err := sys.Statfs(x.Path, &s)
+  err := sys.Statfs(string(x), &s)
   return s, err
 }
 

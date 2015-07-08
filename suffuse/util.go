@@ -38,14 +38,14 @@ func NewErr(text string) error { return errors.New(text) }
 func ScratchDir() Path {
   dir, err := ioutil.TempDir("", "suffuse")
   MaybeFatal(err)
-  path := NewPath(dir)
+  path := Path(dir)
   deleteOnExit = append(deleteOnExit, path)
   return path
 }
 func ScratchFile() Path {
   fh, err := ioutil.TempFile("", "suffuse")
   MaybeFatal(err)
-  path := NewPath(fh.Name())
+  path := Path(fh.Name())
   deleteOnExit = append(deleteOnExit, path)
   return path
 }
