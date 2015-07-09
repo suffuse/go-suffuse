@@ -32,12 +32,12 @@ func NewSfs(conf *SfsConfig) (*Sfs, error) {
          mnt := conf.Mountpoint
   mount_opts := getFuseMountOptions(conf)
 
-  if conf.Config != nil {
-    configFileOpts := ReadJsonFile(*conf.Config)
+  if !conf.Config.IsEmpty() {
+    configFileOpts := ReadJsonFile(conf.Config)
     Echoerr("%v", configFileOpts)
   }
 
-  c, err := fuse.Mount(mnt.Path, mount_opts...)
+  c, err := fuse.Mount(string(mnt), mount_opts...)
   if err != nil { return nil, err }
 
   mfs := &Sfs {

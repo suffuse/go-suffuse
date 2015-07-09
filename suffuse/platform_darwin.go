@@ -30,5 +30,5 @@ func SysAtimeMtime(sp *sys.Stat_t) (atime time.Time, mtime time.Time) {
 }
 
 func (x Path) SysUnmount() error {
-  return sys.Unmount(x.Path, MNT_FORCE)
+  return sys.Unmount(string(x), MNT_FORCE)
 }

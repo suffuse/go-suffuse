@@ -20,7 +20,7 @@ func NewIdNode(path Path) *IdNode {
   return &IdNode { Path: path }
 }
 
-func (x *IdNode) String() string { return x.Path.Path }
+func (x *IdNode) String() string { return string(x.Path) }
 
 // Access checks whether the calling context has permission for
 // the given operations on the receiver. If so, Access should
@@ -161,7 +161,7 @@ func (x *IdNode) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, 
 
   for _, rule := range Rules {
     target := rule.LinkData(path)
-    if target != nil { return target.Path, nil }
+    if target != nil { return string(*target), nil }
   }
   return "", EINVAL
 }
@@ -217,21 +217,21 @@ func (x *IdNode) Create(ctx context.Context, req *f.CreateRequest, resp *f.Creat
  */
 func (x *IdNode) Getxattr(ctx context.Context, req *f.GetxattrRequest, resp *f.GetxattrResponse) error {
   logD("Getxattr", "path", x.Path, "xattr", req.Name)
-  bytes := xattr.Get(x.Path.Path, req.Name)
+  bytes := xattr.Get(string(x.Path), req.Name)
   if bytes != nil { resp.Xattr = bytes }
   return nil
 }
 func (x *IdNode) Listxattr(ctx context.Context, req *f.ListxattrRequest, resp *f.ListxattrResponse) error {
   logD("Listxattr", "path", x.Path)
-  names := xattr.List(x.Path.Path)
+  names := xattr.List(string(x.Path))
   if names != nil { resp.Append(names...) }
   return nil
 }
 func (x *IdNode) Setxattr(ctx context.Context, req *f.SetxattrRequest) error {
   logD("Setxattr", "path", x.Path, "name", req.Name, "value", string(req.Xattr))
-  return xattr.Set(x.Path.Path, req.Name, req.Xattr)
+  return xattr.Set(string(x.Path), req.Name, req.Xattr)
 }
 func (x *IdNode) Removexattr(ctx context.Context, req *f.RemovexattrRequest) error {
   logD("Removexattr", "path", x.Path, "name", req.Name)
-  return xattr.Remove(x.Path.Path, req.Name)
+  return xattr.Remove(string(x.Path), req.Name)
 }

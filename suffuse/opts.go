@@ -14,7 +14,7 @@ type sfsOpts struct {
 
 type SfsConfig struct {
   VolName string
-  Config *Path
+  Config Path
   Mountpoint Path
   LogLevel lg.Lvl
   Paths []Path
@@ -61,7 +61,7 @@ func optsFromArgs(args []string) (*sfsOpts, *SfsConfigError) {
 
 func validate(opts *sfsOpts) *SfsConfigError {
   exists := func (path string, msg string) *SfsConfigError {
-    if (!NewPath(path).FileExists()) { return opts.newError(Sprintf(msg, path)) }
+    if (!Path(path).FileExists()) { return opts.newError(Sprintf(msg, path)) }
     return nil
   }
 
@@ -84,8 +84,8 @@ func configFromOpts(opts *sfsOpts) (*SfsConfig, *SfsConfigError) {
   determineMountPoint := func() (Path, *SfsConfigError) {
     switch {
       case opts.Scratch          : return ScratchDir(), nil
-      case opts.Mountpoint != "" : return NewPath(opts.Mountpoint), nil
-      default                    : return Path{}, opts.newError("Mountpoint can not be empty if the scratch flag is false")
+      case opts.Mountpoint != "" : return Path(opts.Mountpoint), nil
+      default                    : return NoPath, opts.newError("Mountpoint can not be empty if the scratch flag is false")
     }
   }
 
@@ -102,9 +102,9 @@ func configFromOpts(opts *sfsOpts) (*SfsConfig, *SfsConfigError) {
 
   return &SfsConfig {
     VolName    : opts.VolName,
-    Config     : NewPathRef(opts.Config),
+    Config     : Path(opts.Config),
     Mountpoint : mnt,
-    Paths      : NewPaths(opts.Args...),
+    Paths      : Paths(opts.Args...),
     LogLevel   : determineLogLevel(),
   }, nil
 }

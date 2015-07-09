@@ -20,10 +20,10 @@ var Rules = []Rule {
 
 var NoNode = NewIdNode(NoPath)
 
-var NoPath     = NewPath("")
-var RootPath   = NewPath("/")
-var DotPath    = NewPath(".")
-var DotDotPath = NewPath("..")
+var NoPath     = Path("")
+var RootPath   = Path("/")
+var DotPath    = Path(".")
+var DotDotPath = Path("..")
 
 // TODO - actually delete on exit.
 var deleteOnExit = make([]Path, 0)

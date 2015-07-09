@@ -16,7 +16,7 @@ func ReadJsonFile(p Path) map[string]interface{} {
 func WriteJsonFile(p Path, x interface{}) {
   data, err := json.Marshal(x)
   if err == nil {
-    ioutil.WriteFile(p.Path, data, 0444)
+    ioutil.WriteFile(string(p), data, 0444)
   }
 }
 

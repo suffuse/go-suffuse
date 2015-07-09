@@ -83,10 +83,10 @@ func (s *Tsfs) SetUpSuite(c *C) {
   // rand.Int() is used by the check library. Without this line it not so random...
   rand.Seed(time.Now().UnixNano())
 
-  s.In  = NewPath(c.MkDir())
-  s.Out = NewPath(c.MkDir())
+  s.In  = Path(c.MkDir())
+  s.Out = Path(c.MkDir())
   c.Assert(ExecBashIn(s.In, make_test_fs(runtime.GOOS)).Err, IsNil)
-  startFuse("suffuse", "-m", s.Out.Path, s.In.Path)
+  startFuse("suffuse", "-m", string(s.Out), string(s.In))
 }
 
 func (s *Tsfs) TearDownSuite(c *C) {
