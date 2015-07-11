@@ -108,18 +108,18 @@ _Start playing_
 
 # Via suffuse, a derived file ending with #4,6p is a sed 
 # command executed on the actual file.
-% cat /mnt/seq.txt#4,6p
+% cat ~/mnt/seq.txt#4,6p
 4
 5
 6
 
 # Arbitrary sed commands, different sized files.
-% ls -l /mnt/seq.txt#5,10p
--rw-r--r--  1 user  user  13 Jun 30 11:57 /mnt/seq.txt#5,10p
+% ls -l ~/mnt/seq.txt#5,10p
+-rw-r--r--  1 user  user  13 Jun 30 11:57 /home/user/mnt/seq.txt#5,10p
 
 # These files are effectively indistinguishable from "real" files.
-% ls -l /mnt/seq.txt#1,3p
--rw-r--r--  1 user  user  6 Jun 30 11:57 /mnt/seq.txt#1,3p
+% ls -l ~/mnt/seq.txt#1,3p
+-rw-r--r--  1 user  user  6 Jun 30 11:57 /home/user/mnt/seq.txt#1,3p
 ```
 
 _Kill the suffuse instance_
