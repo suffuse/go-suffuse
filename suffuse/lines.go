@@ -92,9 +92,8 @@ func BytesToLines(bytes []byte) Lines {
 func StripMargin(marginChar rune, s string) string {
   perLine := func(line string)string {
     trimmed := strings.TrimSpace(line)
-    index   := strings.IndexRune(trimmed, marginChar)
-    if index > -1 {
-      return trimmed[index + 1:]
+    if strings.IndexRune(trimmed, marginChar) == 0 {
+      return trimmed[1:]
     } else {
       return line
     }
