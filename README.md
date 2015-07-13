@@ -43,10 +43,6 @@ Installation
 
 **When you see ... it means literally three dots.** It's the go syntax for "all projects under this directory."
 
-```
-go get github.com/suffuse/go-suffuse/cmd/suffuse
-```
-
 Suffuse has been installed in `$GOPATH/bin`.
 
 A git checkout has been created in `$GOPATH/src/github.com/suffuse/go-suffuse`.
