@@ -9,7 +9,7 @@ os:
 
 install:
   - go get -t -v ./...
-  - sudo apt-get install -qq libfuse-dev pkg-config fuse user-mode-linux slirp
+  - sudo apt-get install -qq libfuse-dev pkg-config fuse user-mode-linux slirp tree
   - sudo mknod /dev/fuse c 10 229
   - sudo chmod 666 /dev/fuse
 

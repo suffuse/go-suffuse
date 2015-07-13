@@ -42,16 +42,25 @@ func (x Path) GoDir() string                   { return filepath.Dir(string(x)) 
 func (x Path) GoEvalSymlinks() (string, error) { return filepath.EvalSymlinks(string(x))   }
 func (x Path) GoExt() string                   { return filepath.Ext(string(x))            }
 func (x Path) GoRel(abs Path) (string, error)  { return filepath.Rel(string(x), string(abs)) }
-func (x Path) GoSplitList() []string           { return filepath.SplitList(string(x))      }
 
-func (x Path) Name() string           { return x.GoBase()                    }
+func (x Path) Name() Name             { return Name(x.GoBase())              }
 func (x Path) Extension() string      { return x.GoExt()                     }
 func (x Path) Absolute() Path         { return MaybePath(x.GoAbs())          }
 func (x Path) Relative(abs Path) Path { return MaybePath(x.GoRel(abs))       }
 func (x Path) Clean() Path            { return Path(x.GoClean())             }
 func (x Path) Parent() Path           { return Path(x.GoDir())               }
-func (x Path) Segments() []string     { return x.GoSplitList()               }
 func (x Path) EvalSymlinks() Path     { return MaybePath(x.GoEvalSymlinks()) }
+
+func (x Path) Segments() []Name {
+  segs := strings.Split(string(x), "/")
+  buf := make([]Name, 0)
+  for _, seg := range segs {
+    if len(seg) > 0 {
+      buf = append(buf, Name(seg))
+    }
+  }
+  return buf
+}
 
 func (x Path) IsAbs() bool   { return filepath.IsAbs(string(x)) }
 func (x Path) IsEmpty() bool { return string(x) == ""            }
@@ -146,7 +155,6 @@ func (x Path) FollowAll() Path {
   if err != nil { return x }
   return Path(next).FollowAll()
 }
-
 func (x Path) ReadDirnames() []string {
   fd, err := x.OsOpen()
   if err != nil { return nil }

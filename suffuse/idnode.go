@@ -153,7 +153,7 @@ func (x *IdNode) ReadDirAll(ctx context.Context) ([]f.Dirent, error) {
     children := rule.DirData(x.Path)
     if children != nil { return children, nil }
   }
-  return nil, ENOTDIR
+  return nil, NotADir()
 }
 func (x *IdNode) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, error) {
   path := x.Path
@@ -163,7 +163,7 @@ func (x *IdNode) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, 
     target := rule.LinkData(path)
     if target != nil { return string(*target), nil }
   }
-  return "", EINVAL
+  return "", NotValidArg()
 }
 func (x *IdNode) Read(ctx context.Context, req *f.ReadRequest, resp *f.ReadResponse) error {
   path := x.Path
@@ -188,7 +188,7 @@ func (x *IdNode) ReadAll(ctx context.Context) ([]byte, error) {
       return bytes, nil
     }
   }
-  return nil, f.ENOENT
+  return nil, NotExist()
 }
 
 /** Write ops.
@@ -210,7 +210,7 @@ func (x *IdNode) Mkdir(ctx context.Context, req *f.MkdirRequest) (fs.Node, error
 }
 func (x *IdNode) Create(ctx context.Context, req *f.CreateRequest, resp *f.CreateResponse) (fs.Node, fs.Handle, error) {
   logD("Create", "path", x.Path, "req", *req)
-  return nil, nil, f.ENOTSUP
+  return nil, nil, NotSupported()
 }
 
 /** Xattr ops.
