@@ -11,31 +11,21 @@ A raw snapshot of generic file virtualization in progress. Written in go.
 Prerequisites
 =============
 
-[Go](https://golang.org/)
+- [FUSE](http://sourceforge.net/p/fuse/wiki/OperatingSystems/)
+- [Go](https://golang.org/dl/) 1.4.x
+- GOPATH [correctly configured](https://github.com/golang/go/wiki/GOPATH)
 
-**OSX**
+**OS X**
 ```
-brew install go
+brew install osxfuse go
 ```
 
 **Linux**
 
-Get and extract the correct version (at least version `1.4.2`) from [The Go Download page](https://golang.org/dl/)
-
+[Install Go](https://golang.org/doc/install#tarball) directly to obtain the current release.
 ```
-# Make sure to export GOROOT to the correct path
-export GOROOT="$HOME/opt/go1.4.2"
-```
-
---------------------
-
-[GOPATH environment variable](https://github.com/golang/go/wiki/GOPATH) needs to be correctly set.
-
-An example setup of the paths:
-
-```
-export GOPATH="$HOME/workspaces/go"
-export PATH="$GOPATH/bin":$PATH
+# FUSE installation on ubuntu, other distributions will be similar
+sudo apt-get install fuse
 ```
 
 Installation
@@ -106,7 +96,7 @@ _Start playing_
 % wc -l ~/mnt/seq.txt
 10 /home/user/mnt/seq.txt
 
-# Via suffuse, a derived file ending with #4,6p is a sed 
+# Via suffuse, a derived file ending with #4,6p is a sed
 # command executed on the actual file.
 % cat /mnt/seq.txt#4,6p
 4
