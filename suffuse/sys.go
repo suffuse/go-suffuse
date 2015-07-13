@@ -12,6 +12,7 @@ import (
 )
 
 const (
+  FUSE_ROOT_ID    = 1    // fuse-hardcoded node ID of the root inode
   MAXNAMELEN      = 255
   MNT_FORCE       = 0x1
   OsModeAnyDevice = os.ModeDevice | os.ModeCharDevice

@@ -39,6 +39,10 @@ func (x *Inode) TreeString()string {
 func (x *Inode) SetAttr(k AttrKey, v AttrValue) {
   x.AttrMap[k] = v
 }
+func (x *Inode) WithAttr(k AttrKey, v AttrValue)*Inode {
+  x.SetAttr(k, v)
+  return x
+}
 
 func (x *Inode) AttrOr(key AttrKey, alt AttrValue)(r AttrValue) {
   r = x.AttrMap[key]

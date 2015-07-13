@@ -1,35 +1,38 @@
 package suffuse
 
 type InodeGen struct {
-  count uint64
+  fresh chan InodeNum
 }
 
-func NewRootInode()*Inode {
-  gen := InodeGen { 2 }
+func NewRootInode(startInode uint64)*Inode {
+  ichan := make(chan InodeNum)
+  // Monotonically increments the counter without any
+  // effort to track or reuse.
+  go func() {
+    count := uint64(startInode)
+    for {
+      ichan <- InodeNum(count)
+      count += 1
+    }
+  }()
+
+  gen := InodeGen { ichan }
   return gen.NextDir()
 }
 
-func (x *InodeGen) Next() *Inode {
+func (x *InodeGen) Next(tp InodeType) *Inode {
   ino := Inode { InodeGen: x, AttrMap: AttrMap{} }
-  ino.SetAttr(InodeNumKey, InodeNum(x.count))
+  ino.SetAttr(InodeNumKey, <- x.fresh)
+  ino.SetAttr(InodeTypeKey, tp)
   ino.SetAttr(PermBitsKey, BasePermBits())
-  x.count += 1
   return &ino
 }
 func (x *InodeGen) NextDir() *Inode {
-  ino := x.Next()
-  ino.SetAttr(InodeTypeKey, InodeDir)
-  ino.SetAttr(DirListKey, DirList{})
-  return ino
+  return x.Next(InodeDir).WithAttr(DirListKey, DirList{})
 }
 func (x *InodeGen) NextFile() *Inode {
-  ino := x.Next()
-  ino.SetAttr(InodeTypeKey, InodeFile)
-  ino.SetAttr(BytesKey, NoBytes)
-  return ino
+  return x.Next(InodeFile).WithAttr(BytesKey, []byte{})
 }
 func (x *InodeGen) NextLink() *Inode {
-  ino := x.Next()
-  ino.SetAttr(InodeTypeKey, InodeLink)
-  return ino
+  return x.Next(InodeLink).WithAttr(LinkTargetKey, NoLinkTarget)
 }

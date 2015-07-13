@@ -1,32 +1,9 @@
 package suffuse
 
 import (
-  "os"
   "strings"
-  "bazil.org/fuse"
   . "gopkg.in/check.v1"
 )
-
-/** TODO de-dup the logic from this and other fuse startups.
- */
-func SfsFromMap(mountPoint Path, nodes map[Path]interface{})*Sfs {
-  conn, err := fuse.Mount(string(mountPoint))
-  if err != nil { return nil }
-
-  root := NewRootInode()
-  root.AddNodeMap(nodes)
-  vfs := &Sfs {
-    Mountpoint: mountPoint,
-    RootNode: root,
-    Connection: conn,
-  }
-  trap := func (sig os.Signal) {
-    Echoerr("Caught %v - forcing unmount(2) of %v\n", sig, mountPoint)
-    vfs.Unmount()
-  }
-  TrapExit(trap)
-  return vfs
-}
 
 /** TODO put these big expected strings in text files and slurp the files.
  */
@@ -126,6 +103,7 @@ var expectedLinks = strings.TrimSpace(`
 func removeBackticks(s string)string {
   return NewRegex("[`]").ReplaceAllLiteralString(s, "\\")
 }
+var treeOptions = Strings("tree", "-F", "-n", "--charset", "US-ASCII")
 
 // Exercising basic filesystem functions.
 func primeFilesystemMap()map[Path]interface{} {
@@ -146,38 +124,27 @@ func primeFilesystemMap()map[Path]interface{} {
   return mapping
 }
 
-func (s *Tsfs) TestNewVfs(c *C) {
-  mnt := ScratchDir()
-  mapping := primeFilesystemMap()
-  mfs := SfsFromMap(mnt, mapping)
+func (s *Tsfs) TestPrimesFilesystem(c *C) {
+  WithSfs(func(mnt Path, root *Inode) {
+    runSlurp := func(args ...string)string {
+      return strings.TrimSpace(ExecIn(mnt, args...).Slurp())
+    }
+    // Use "find" to select a subset of virtual nodes and "cat"
+    // to obtain their contents.
+    getpaths := func(arg string)[]string {
+      return append(Strings("cat"), ExecIn(mnt, "find", ".", "-type", arg).Lines().SortedStrings()...)
+    }
 
-  defer mfs.Unmount()
+    // Populate the filesystem.
+    root.AddNodeMap(primeFilesystemMap())
 
-  go func() {
-    MaybeLog(mfs.Serve())
-    <- mfs.Connection.Ready
-    MaybeLog(mfs.Connection.MountError)
-  }()
+    // `tree .`
+    AssertString(c, removeBackticks(runSlurp(treeOptions...)), expectedTree)
 
-  // Without a sleep here the tests non-deterministically fail with no output.
-  // Not sure what we're supposed to wait on.
-  SleepMillis(50)
+    // `find . -type f | xargs cat`
+    AssertString(c, runSlurp(getpaths("f")...), expectedFiles)
 
-  // Use "find" to select a subset of virtual nodes and "cat"
-  // to obtain their contents.
-  getpaths := func(arg string)[]string {
-    paths := ExecIn(mnt, "find", ".", "-type", arg).Lines().SortedStrings()
-    return append(Strings("cat"), paths...)
-  }
-
-  treeOut := removeBackticks(strings.TrimSpace(ExecIn(mnt, "tree", "-F", "-n", "--charset", "US-ASCII").Slurp()))
-  AssertString(c, treeOut, expectedTree)
-
-  // find . -type f
-  findFiles := strings.TrimSpace(ExecIn(mnt, getpaths("f")...).Slurp())
-  AssertString(c, findFiles, expectedFiles)
-
-  // find . -type l
-  findLinks := strings.TrimSpace(ExecIn(mnt, getpaths("l")...).Slurp())
-  AssertString(c, findLinks, expectedLinks)
+    // `find . -type l | xargs cat`
+    AssertString(c, runSlurp(getpaths("l")...), expectedLinks)
+  })
 }

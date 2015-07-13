@@ -76,3 +76,7 @@ func (x *Inode) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (string
     return "", NotValidArg()
   }
 }
+
+func (x *Inode) Forget() {
+  // Echoerr("Forget %v", *x)
+}

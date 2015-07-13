@@ -37,7 +37,6 @@ const UidKey        = AttrKey("Uid")
 const MaxValueUint32 = uint32(1 << 32 - 1)
 
 var AllPermBits  = PermBits(os.ModePerm)
-var NoDirList    = DirList(nil)
 var NoGid        = Gid(MaxValueUint32)
 var NoInodeNum   = InodeNum(0)
 var NoLinkTarget = LinkTarget("")
@@ -48,7 +47,7 @@ var OsUid        = Uid(os.Getuid())
 var OsUmask      = GetUmask()
 
 func (x *Inode) Bytes()Bytes           { return x.AttrOr(BytesKey, NoBytes).(Bytes)                }
-func (x *Inode) DirList()DirList       { return x.AttrOr(DirListKey, NoDirList).(DirList)          }
+func (x *Inode) DirList()DirList       { return x.AttrOr(DirListKey, nil).(DirList)                }
 func (x *Inode) Gid()Gid               { return x.AttrOr(GidKey, OsGid).(Gid)                      }
 func (x *Inode) InodeType()InodeType   { return x.AttrOr(InodeTypeKey, InodeNone).(InodeType)      }
 func (x *Inode) InodeNum()InodeNum     { return x.AttrOr(InodeNumKey, NoInodeNum).(InodeNum)       }

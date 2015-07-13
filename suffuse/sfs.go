@@ -15,6 +15,38 @@ type Sfs struct {
   Connection *fuse.Conn
 }
 
+/** Pass a closure which accepts the mount point and the root inode,
+ *  and does whatever it's doing to do with those. When the closure
+ *  completes the filesystem is unmounted.
+ */
+func WithSfs(f func(Path, *Inode))error {
+  mountPoint := ScratchDir()
+  conn, err := fuse.Mount(string(mountPoint))
+  if err != nil { return err }
+
+  root := NewRootInode(FUSE_ROOT_ID)
+  vfs := &Sfs {
+    Mountpoint: mountPoint,
+    RootNode: root,
+    Connection: conn,
+  }
+  trap := func (sig os.Signal) {
+    Echoerr("Caught %v - forcing unmount(2) of %v\n", sig, mountPoint)
+    vfs.Unmount()
+  }
+  TrapExit(trap)
+
+  go func() {
+    MaybeLog(vfs.Serve())
+    <- vfs.Connection.Ready
+    MaybeLog(vfs.Connection.MountError)
+  }()
+
+  defer vfs.Unmount()
+  f(mountPoint, root)
+  return nil
+}
+
 // There are two approaches to writing a FUSE file system.  The first is to speak
 // the low-level message protocol, reading from a Conn using ReadRequest and
 // writing using the various Respond methods.  This approach is closest to
