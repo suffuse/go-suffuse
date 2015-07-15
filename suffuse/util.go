@@ -6,6 +6,7 @@ import (
   "io/ioutil"
   "log"
   "errors"
+  "time"
 )
 
 func Println(a ...interface{})                       { fmt.Println(a...)                           }
@@ -21,6 +22,10 @@ func AssertEq(x interface{}, y interface{}) {
   if (x != y) {
     panic(fmt.Sprintf("%v: %T != %v: %T", x, x, y, y))
   }
+}
+
+func SleepMillis(n int64) {
+  time.Sleep(time.Millisecond * time.Duration(n))
 }
 
 /** Returns the first non-nil error of all passed,

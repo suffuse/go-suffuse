@@ -1,6 +1,7 @@
 package suffuse
 
 import (
+  "fmt"
   "testing"
   "strings"
   "runtime"
@@ -74,6 +75,16 @@ func AssertExecSuccess(c *C, args ...string) {
 }
 func AssertSameFile(c *C, p1, p2 Path) {
   c.Assert(p1.EvalSymlinks(), Equals, p2.EvalSymlinks())
+}
+// "found fmt.Stringer" means you can't pass a string. Oyve.
+func AssertString(c *C, found interface{}, expected string) {
+  var str string = ""
+  switch found := found.(type) {
+    case fmt.Stringer : str = found.String()
+    case string       : str = found
+    default           : panic(Sprintf("Unexpected type %T", found))
+  }
+  c.Assert(str, Equals, expected)
 }
 
 func (s *Tsfs) SetUpSuite(c *C) {
