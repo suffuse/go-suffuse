@@ -5,20 +5,18 @@ import (
 )
 
 const (
-  SfsConfigFileName = ".sfs"
-  DefaultFilePerms  = os.FileMode(0644)
-  DefaultDirPerms   = os.FileMode(0755)
+  defaultFilePerms  = os.FileMode(0644)
 )
 
 /** Eventually we'll read this kind of information out of a config
  *  file, but for now it's hardcoded here.
  */
-var Rules = append(
+var rules = append(
   []Rule { &IdRule{} },  // The identity fs - passes underlying paths through unchanged
-  rules()...
+  parseRules()...
 )
 
-func rules() []Rule {
+func parseRules() []Rule {
   conf := []byte(`[
     {
       "nature" : "file_command",
@@ -44,13 +42,3 @@ func rules() []Rule {
 
   return rules
 }
-
-var NoNode = NewIdNode(NoPath)
-
-var NoPath     = Path("")
-var RootPath   = Path("/")
-var DotPath    = Path(".")
-var DotDotPath = Path("..")
-
-// TODO - actually delete on exit.
-var deleteOnExit = make([]Path, 0)

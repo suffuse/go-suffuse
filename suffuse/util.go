@@ -35,6 +35,9 @@ func FindError(errors ...error) error {
 
 func NewErr(text string) error { return errors.New(text) }
 
+// TODO - actually delete on exit.
+var deleteOnExit = make([]Path, 0)
+
 func ScratchDir() Path {
   dir, err := ioutil.TempDir("", "suffuse")
   MaybeFatal(err)
@@ -48,4 +51,9 @@ func ScratchFile() Path {
   path := Path(fh.Name())
   deleteOnExit = append(deleteOnExit, path)
   return path
+}
+
+func maybeByteString(result []byte, err error) string {
+  if err != nil { return "" }
+  return string(result)
 }

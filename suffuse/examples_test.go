@@ -128,7 +128,7 @@ func echo(s string) string {
 }
 
 func installConverterFunctions() {
-  execute(string(Cwd()))(`
+  execute(string(cwd()))(`
     go get github.com/dbohdan/remarshal
 
     for if in toml yaml json; do

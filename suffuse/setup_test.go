@@ -7,6 +7,7 @@ import (
   . "gopkg.in/check.v1"
   "math/rand"
   "time"
+  "regexp"
 )
 
 var _ = Suite(&Tsfs{})
@@ -21,7 +22,10 @@ type Tsfs struct { In Path ; Out Path }
  *  In particular the "total NN" line differs. The details are
  *  not especially interesting. We just filter out the tottal line.
  */
-var totalRegex = NewRegex(`total \d+`)
+type Regex struct {
+  *regexp.Regexp
+}
+var totalRegex = Regex { regexp.MustCompile(`total \d+`) }
 
 func make_test_fs(os string) string {
   xattrPart := ""
@@ -78,7 +82,7 @@ func AssertSameFile(c *C, p1, p2 Path) {
 
 func (s *Tsfs) SetUpSuite(c *C) {
   logI("SetUpSuite(%s)\n", *s)
-  PsutilHostDump()
+  psutilHostDump()
 
   // rand.Int() is used by the check library. Without this line it not so random...
   rand.Seed(time.Now().UnixNano())
@@ -99,3 +103,19 @@ func (s *Tsfs) SetUpTest(c *C) {
 func (s *Tsfs) TearDownTest(c *C) {
   logD("TearDownTest(%s)\n", c.GetTestLog())
 }
+
+func (x Lines) filter(re Regex) Lines    { return filterCommon(x, re, true)    }
+func (x Lines) filterNot(re Regex) Lines { return filterCommon(x, re, false)   }
+
+func filterCommon(x Lines, re Regex, expectTrue bool) Lines {
+  xs := x.Strings
+  ys := make([]string, 0)
+
+  for _, line := range xs {
+    if re.MatchString(line) == expectTrue {
+      ys = append(ys, line)
+    }
+  }
+  return NewLines(ys...)
+}
+
