@@ -6,12 +6,7 @@ import (
 )
 
 func main() {
-  conf, conf_err := CreateSfsConfig(os.Args)
-  if conf_err != nil {
-    conf_err.PrintUsage()
-    os.Exit(2)
-  }
-
+  conf := CreateSfsConfig(os.Args)
   mfs, err := NewSfs(conf)
   MaybePanic(err)
 

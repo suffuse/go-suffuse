@@ -16,12 +16,12 @@ type ExecResult struct {
   Stdout []byte
 }
 
-func cwd() Path        { return MaybePath(os.Getwd()) }
+func cwd() Path        { return maybePath(os.Getwd()) }
 
-func (x ExecResult) OneLine() string { return x.Strings().JoinWords()  }
-func (x ExecResult) Strings() Strings    { return BytesToLines(x.Stdout) }
-func (x ExecResult) Slurp() string   { return string(x.Stdout)       }
-func (x ExecResult) Success() bool   { return x.Err == nil           }
+func (x ExecResult) OneLine() string  { return x.Strings().JoinWords() }
+func (x ExecResult) Strings() Strings { return BytesToLines(x.Stdout)  }
+func (x ExecResult) Slurp() string    { return string(x.Stdout)        }
+func (x ExecResult) Success() bool    { return x.Err == nil            }
 
 func Exec(args ...string) ExecResult                { return ExecIn(cwd(), args...)            }
 func ExecBash(script string) ExecResult             { return ExecBashIn(cwd(), script)         }
