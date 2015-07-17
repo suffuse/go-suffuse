@@ -83,5 +83,5 @@ func (x Path) walkCollect(f func(string, os.FileInfo) string) Lines {
       return nil
     },
   )
-  return NewLines(res...)
+  return Strs(res...)
 }

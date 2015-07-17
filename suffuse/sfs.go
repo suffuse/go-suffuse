@@ -27,7 +27,7 @@ type Sfs struct {
 // or directory), and Handle* (opened file or directory).
 
 func NewSfs(conf *SfsConfig) (*Sfs, error) {
-  SetLogLevel(conf.LogLevel)
+  sfsLogLevel = conf.LogLevel
          mnt := conf.Mountpoint
   mount_opts := getFuseMountOptions(conf)
 

@@ -16,7 +16,7 @@ type ExecResult struct {
   Stdout []byte
 }
 
-func cwd() Path        { return MaybePath(os.Getwd()) }
+func cwd() Path        { return maybePath(os.Getwd()) }
 
 func (x ExecResult) OneLine() string { return x.Lines().JoinWords()  }
 func (x ExecResult) Lines() Lines    { return BytesToLines(x.Stdout) }
