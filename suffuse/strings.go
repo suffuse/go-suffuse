@@ -3,6 +3,7 @@ package suffuse
 import (
   "fmt"
   "strings"
+  "sort"
 )
 
 type StringMap map[string]string
@@ -27,6 +28,13 @@ func (x Strings) String() string         { return x.Join("\n")                 }
 func TrimSpace(s string)string { return strings.TrimSpace(s) }
 func (x Strings) TrimAll() Strings {
   return x.Map(func(s string)string { return TrimSpace(s) })
+}
+
+func (x Strings) SortedStrings() []string {
+  dst := make([]string, x.Len())
+  copy(dst, x.Array())
+  sort.Strings(dst)
+  return dst
 }
 
 func (x Strings) Map(f func(string)string) Strings {
