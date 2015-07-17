@@ -23,7 +23,7 @@ func (s *Tsfs) TestStripMargin(c *C) {
 func (s *Tsfs) TestLines(c *C) {
     ls := NewLines("dog  ", "  cat", " monkey in middle ")
    one := ls.JoinWords()
-    fm := ls.FlatMap(func(s string)[]string { return Strings("a", "b") }).JoinWords()
+    fm := ls.FlatMap(func(s string)[]string { return []string{"a", "b"} }).JoinWords()
   fold := ls.Fold(func(acc, s string)string { return fmt.Sprintf("%s%d!", acc, len(s)) })
 
   c.Assert(one, Equals, "dog cat monkey in middle")

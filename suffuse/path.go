@@ -10,48 +10,32 @@ import (
 
 type Path string
 
+var NoPath = Path("")
+
 func Paths(paths ...string) []Path {
   xs := make([]Path, len(paths))
   for i, p := range paths { xs[i] = Path(p) }
   return xs
 }
-func Cwd() Path        { return MaybePath(os.Getwd()) }
-func CwdNoLinks() Path { return Cwd().EvalSymlinks()  }
+
+func MaybePath(path string, err error) Path {
+  if err != nil { return NoPath }
+  return Path(path)
+}
 
 func (x Path) MaybePath(result string, err error) Path {
   if err != nil { return x }
   return Path(result)
 }
-func MaybePath(path string, err error) Path {
-  if err != nil { return NoPath }
-  return Path(path)
-}
-func MaybeString(result string, err error) string {
-  if err != nil { return "" }
-  return result
-}
-func MaybeByteString(result []byte, err error) string {
-  if err != nil { return "" }
-  return string(result)
-}
 
-func (x Path) GoAbs() (string, error)          { return filepath.Abs(string(x))            }
-func (x Path) GoBase() string                  { return filepath.Base(string(x))           }
-func (x Path) GoClean() string                 { return filepath.Clean(string(x))          }
-func (x Path) GoDir() string                   { return filepath.Dir(string(x))            }
-func (x Path) GoEvalSymlinks() (string, error) { return filepath.EvalSymlinks(string(x))   }
-func (x Path) GoExt() string                   { return filepath.Ext(string(x))            }
-func (x Path) GoRel(abs Path) (string, error)  { return filepath.Rel(string(x), string(abs)) }
-func (x Path) GoSplitList() []string           { return filepath.SplitList(string(x))      }
-
-func (x Path) Name() string           { return x.GoBase()                    }
-func (x Path) Extension() string      { return x.GoExt()                     }
-func (x Path) Absolute() Path         { return MaybePath(x.GoAbs())          }
-func (x Path) Relative(abs Path) Path { return MaybePath(x.GoRel(abs))       }
-func (x Path) Clean() Path            { return Path(x.GoClean())             }
-func (x Path) Parent() Path           { return Path(x.GoDir())               }
-func (x Path) Segments() []string     { return x.GoSplitList()               }
-func (x Path) EvalSymlinks() Path     { return MaybePath(x.GoEvalSymlinks()) }
+func (x Path) Name() string           { return filepath.Base(string(x))                        }
+func (x Path) Extension() string      { return filepath.Ext(string(x))                         }
+func (x Path) Absolute() Path         { return MaybePath(filepath.Abs(string(x)))              }
+func (x Path) Relative(abs Path) Path { return MaybePath(filepath.Rel(string(x), string(abs))) }
+func (x Path) Clean() Path            { return Path(filepath.Clean(string(x)))                 }
+func (x Path) Parent() Path           { return Path(filepath.Dir(string(x)))                   }
+func (x Path) Segments() []string     { return filepath.SplitList(string(x))                   }
+func (x Path) EvalSymlinks() Path     { return MaybePath(filepath.EvalSymlinks(string(x)))     }
 
 func (x Path) IsAbs() bool   { return filepath.IsAbs(string(x)) }
 func (x Path) IsEmpty() bool { return string(x) == ""            }
@@ -85,12 +69,11 @@ func (x Path) OsStatAtimeMtime() (atime time.Time, mtime time.Time) {
   return SysAtimeMtime(&stat)
 }
 
-func (x Path) IndexOfByte(b byte) int   { return strings.IndexByte(string(x), b) }
-func (x Path) Slice(start, end int)Path { return Path(string(x)[start:end])      }
-func (x Path) Strlen()int               { return len(string(x))                  }
+func (x Path) IndexOfByte(b byte) int    { return strings.IndexByte(string(x), b) }
+func (x Path) Slice(start, end int) Path { return Path(string(x)[start:end])      }
 
 func (x Path) SplitAround(idx int) (Path, string) {
-  max := x.Strlen() - 1
+  max := len(string(x)) - 1
   if (idx > 0 && idx < max) {
     return x.Slice(0, idx), string(x)[idx+1:]
   }
@@ -106,7 +89,7 @@ func (x Path) Glob(glob string) []Path {
   return Paths(ms...)
 }
 
-func (x Path) WriteBytes(bs []byte) error        { return ioutil.WriteFile(string(x), bs, DefaultFilePerms) }
+func (x Path) WriteBytes(bs []byte) error        { return ioutil.WriteFile(string(x), bs, defaultFilePerms) }
 func (x Path) WriteString(text string) error     { return x.WriteBytes([]byte(text))                      }
 func (x Path) IoReadDir() ([]os.FileInfo, error) { return ioutil.ReadDir(string(x))                         }
 func (x Path) IoReadFile() ([]byte, error)       { return ioutil.ReadFile(string(x))                        }
@@ -164,20 +147,6 @@ func (x Path) ReadDirnodes() []os.FileInfo {
 
 func (x Path) Walk(walkFn filepath.WalkFunc) error {
   return filepath.Walk(string(x), walkFn)
-}
-func (x Path) WalkCollect(f func(string, os.FileInfo) string) Lines {
-  res := make([]string, 0)
-  x.Walk(
-    func(path string, info os.FileInfo, err error) error {
-      rel, err := filepath.Rel(string(x), path)
-      if err != nil {
-        x := f(rel, info)
-        if x != "" { res = append(res, x) }
-      }
-      return nil
-    },
-  )
-  return NewLines(res...)
 }
 
 // https://github.com/golang/go/issues/1312

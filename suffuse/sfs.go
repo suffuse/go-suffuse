@@ -1,7 +1,6 @@
 package suffuse
 
 import (
-  "golang.org/x/net/context"
   "bazil.org/fuse/fs"
   "bazil.org/fuse"
   "os"
@@ -33,7 +32,7 @@ func NewSfs(conf *SfsConfig) (*Sfs, error) {
   mount_opts := getFuseMountOptions(conf)
 
   if !conf.Config.IsEmpty() {
-    configFileOpts := ReadJsonFile(conf.Config)
+    configFileOpts := readJsonFile(conf.Config)
     Echoerr("%v", configFileOpts)
   }
 
@@ -71,23 +70,6 @@ func getFuseMountOptions(conf *SfsConfig) []fuse.MountOption {
 }
 
 func (u *Sfs) Root() (fs.Node, error) { return u.RootNode, nil }
-
-func (u *Sfs) Init(ctx context.Context, req *fuse.InitRequest, resp *fuse.InitResponse) error {
-  logI("Init", "req", req)
-  return nil
-}
-
-func (u *Sfs) Destroy(ctx context.Context) {
-  logI("Destroy")
-}
-
-func (u *Sfs) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
-  logD("Statfs")
-  stat, err := RootPath.SysStatfs()
-  if err != nil { return err }
-  *resp = SysStatfsToFuseStatfs(stat)
-  return nil
-}
 
 func (u *Sfs) Unmount() error {
   return u.Mountpoint.SysUnmount()

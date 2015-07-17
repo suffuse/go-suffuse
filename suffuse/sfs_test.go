@@ -5,6 +5,7 @@ import (
   "fmt"
   "runtime"
   . "gopkg.in/check.v1"
+  "path/filepath"
 )
 
 /** Mount a fuse filesystem and check that functions
@@ -16,7 +17,7 @@ func (s *Tsfs) TestSameWithLs(c *C) {
   if runtime.GOOS == "darwin" {
     AssertSame(s, c,
       func(p Path) string {
-        return ExecIn(p, "ls", "-laR@").Lines().FilterNot(totalRegex).String()
+        return ExecIn(p, "ls", "-laR@").Lines().filterNot(totalRegex).String()
       },
     )
   }
@@ -24,14 +25,14 @@ func (s *Tsfs) TestSameWithLs(c *C) {
 func (s *Tsfs) TestSameWithFind(c *C) {
   AssertSame(s, c,
     func(p Path) string {
-      return ExecIn(p, "find", ".").Lines().FilterNot(totalRegex).String()
+      return ExecIn(p, "find", ".").Lines().filterNot(totalRegex).String()
     },
   )
 }
 func (s *Tsfs) TestSameWithWalk(c *C) {
   AssertSame(s, c,
     func(root Path) string {
-      return root.WalkCollect(
+      return root.walkCollect(
         func(path string, info os.FileInfo) string {
           return fmt.Sprintf("[%-6d] %s\n", info.Size(), path)
         },
@@ -68,4 +69,19 @@ func (s *Tsfs) TestSedSuffix(c *C) {
 
   c.Assert(s1, Equals, expected)
   c.Assert(s2, Equals, expected)
+}
+
+func (x Path) walkCollect(f func(string, os.FileInfo) string) Lines {
+  res := make([]string, 0)
+  x.Walk(
+    func(path string, info os.FileInfo, err error) error {
+      rel, err := filepath.Rel(string(x), path)
+      if err != nil {
+        x := f(rel, info)
+        if x != "" { res = append(res, x) }
+      }
+      return nil
+    },
+  )
+  return NewLines(res...)
 }

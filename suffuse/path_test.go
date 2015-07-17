@@ -5,6 +5,8 @@ import (
   . "gopkg.in/check.v1"
 )
 
+var dotPath = Path(".")
+
 func NewDuration(spec string) time.Duration {
   dur, err := time.ParseDuration(spec)
   MaybePanic(err)
@@ -50,11 +52,11 @@ func (s *Tsfs) TestPathSymlinkLogic(c *C) {
 
   // Create symlink "link3" -> ".", where "." is now $d.
   link3 := Path("link3")
-  link3.OsSymlink(DotPath)
+  link3.OsSymlink(dotPath)
 
   // Ensure that $d, $(pwd), and "." all resolve to the same path.
-  c.Assert(d, Equals, CwdNoLinks())
-  c.Assert(d, Equals, DotPath.Absolute())
+  c.Assert(d, Equals, cwd())
+  c.Assert(d, Equals, dotPath.Absolute())
 
   // Ensure that link1, link2, and link3 all resolve to the same path.
   AssertSameFile(c, link1, link2)

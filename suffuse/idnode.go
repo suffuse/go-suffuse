@@ -16,6 +16,8 @@ type IdNode struct {
   Path Path
 }
 
+var NoNode = NewIdNode(NoPath)
+
 func NewIdNode(path Path) *IdNode {
   return &IdNode { Path: path }
 }
@@ -121,7 +123,7 @@ func (x *IdNode) Setattr(ctx context.Context, req *f.SetattrRequest, resp *f.Set
 func (x *IdNode) Attr(ctx context.Context, attr *f.Attr) error {
   logD("Attr", "path", x.Path)
 
-  for _, rule := range Rules {
+  for _, rule := range rules {
     a := rule.MetaData(x.Path)
     if a != nil {
       *attr = *a
@@ -149,7 +151,7 @@ func (x *IdNode) Lookup(ctx context.Context, name string) (fs.Node, error) {
 func (x *IdNode) ReadDirAll(ctx context.Context) ([]f.Dirent, error) {
   logD("ReadDirAll", "path", x.Path)
 
-  for _, rule := range Rules {
+  for _, rule := range rules {
     children := rule.DirData(x.Path)
     if children != nil { return children, nil }
   }
@@ -159,7 +161,7 @@ func (x *IdNode) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, 
   path := x.Path
   logD("Readlink", "path", path)
 
-  for _, rule := range Rules {
+  for _, rule := range rules {
     target := rule.LinkData(path)
     if target != nil { return string(*target), nil }
   }
@@ -169,7 +171,7 @@ func (x *IdNode) Read(ctx context.Context, req *f.ReadRequest, resp *f.ReadRespo
   path := x.Path
   logD("Read", "path", path, "req", *req)
 
-  for _, rule := range Rules {
+  for _, rule := range rules {
     bytes := rule.FileData(path)
     if bytes != nil {
       HandleRead(req, resp, bytes)
@@ -182,7 +184,7 @@ func (x *IdNode) ReadAll(ctx context.Context) ([]byte, error) {
   path := x.Path
   logD("ReadAll", "path", path)
 
-  for _, rule := range Rules {
+  for _, rule := range rules {
     bytes := rule.FileData(path)
     if bytes != nil {
       return bytes, nil
