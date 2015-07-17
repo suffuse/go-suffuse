@@ -12,9 +12,9 @@ import (
 )
 
 const (
-  FUSE_ROOT_ID    = 1    // fuse-hardcoded node ID of the root inode
-  maxNameLen      = 255
-  mntForce        = 0x1
+  fuseRootId      = 1    // FUSE_ROOT_ID: fuse-hardcoded node ID of the root inode
+  maxNameLen      = 255  // MAXNAMELEN
+  mntForce        = 0x1  // MNT_FORCE
   osModeAnyDevice = os.ModeDevice | os.ModeCharDevice
 )
 

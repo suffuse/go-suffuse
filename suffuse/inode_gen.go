@@ -12,7 +12,7 @@ func NewRoot(startInode uint64)*Inode {
     count := uint64(startInode)
     for {
       ichan <- InodeNum(count)
-      count += 1
+      count++
     }
   }()
 

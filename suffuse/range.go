@@ -18,7 +18,7 @@ type Range struct {
  *  start value of an empty range to be considered meaningful
  *  or stable under any operations.
  */
-var EmptyRange Range = Range { Offset(0), Length(0) }
+var EmptyRange = Range { Offset(0), Length(0) }
 
 func (x Range) IsEmpty() bool  { return x.LengthInt() == 0           }
 func (x Range) StartInt() int  { return int(x.Offset)                }
@@ -28,28 +28,27 @@ func (x Range) LengthInt() int { return int(x.Length)                }
 func (x Range) String() string {
   if x.IsEmpty() {
     return "0:0"
-  } else {
-    return Sprintf("%v:%v", x.StartInt(), x.LengthInt())
   }
+  return Sprintf("%v:%v", x.StartInt(), x.LengthInt())
 }
 
 func RangeOffsetLength(offset int, length int) Range {
   if offset < 0 {
     return RangeOffsetLength(0, length)
-  } else if length <= 0 {
-    return EmptyRange
-  } else {
-    return Range { Offset(offset), Length(length) }
   }
+  if length <= 0 {
+    return EmptyRange
+  }
+  return Range { Offset(offset), Length(length) }
 }
 func RangeStartEnd(start int, end int) Range {
   if start < 0 {
     return RangeStartEnd(0, end)
-  } else if end <= start || end <= 0 {
-    return EmptyRange
-  } else {
-    return RangeOffsetLength(start, end - start)
   }
+  if end <= start || end <= 0 {
+    return EmptyRange
+  }
+  return RangeOffsetLength(start, end - start)
 }
 
 func (x Range) Drop(n int) Range {

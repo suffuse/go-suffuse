@@ -23,7 +23,7 @@ func (x *Inode) AttrKeys()[]AttrKey {
 }
 func (x *Inode) ChildNames()[]Name {
   ds := x.DirList()
-  buf := make([]string, 0)
+  var buf []string
   for k := range ds { buf = append(buf, string(k)) }
   sort.Strings(buf)
   return Names(buf...)
@@ -70,12 +70,11 @@ func (x *Inode) AddChild(name Name, ino *Inode)error {
 func (x *Inode) Child(name Name)*Inode {
   if x.IsDir() {
     return x.DirList()[name]
-  } else {
-    return nil
   }
+  return nil
 }
 func (x *Inode) Dirents()[]fuse.Dirent {
-  res := make([]fuse.Dirent, 0)
+  var res []fuse.Dirent
   for _, name := range x.ChildNames() {
     child := x.Child(name)
     res = append(res, child.FuseDirent(name))

@@ -42,39 +42,36 @@ func (x *Inode) Attr(ctx context.Context, attrRef *fuse.Attr) error {
 func (x *Inode) Lookup(ctx context.Context, name string) (fs.Node, error) {
   if !x.IsDir() {
     return nil, NotADir()
-  } else {
-    child := x.Child(Name(name)) ; if child != nil {
-      return child, nil
-    } else {
-      return nil, NotExist()
-    }
   }
+  child := x.Child(Name(name))
+  if child != nil {
+    return child, nil
+  }
+  return nil, NotExist()
 }
 
 func (x *Inode) ReadAll(ctx context.Context) ([]byte, error) {
   if x.IsDir() {
     return nil, IsADir()
-  } else {
-    return x.Bytes(), nil
   }
+  return x.Bytes(), nil
 }
 
 func (x *Inode) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
   if x.IsAbsent() {
     return nil, NotExist()
-  } else if !x.IsDir() {
-    return nil, NotADir()
-  } else {
-    return x.Dirents(), nil
   }
+  if !x.IsDir() {
+    return nil, NotADir()
+  }
+  return x.Dirents(), nil
 }
 
 func (x *Inode) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (string, error) {
   if x.IsLink() {
     return string(x.LinkTarget()), nil
-  } else {
-    return "", NotValidArg()
   }
+  return "", NotValidArg()
 }
 
 func (x *Inode) Forget() {

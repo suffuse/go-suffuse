@@ -120,4 +120,3 @@ func filterCommon(x Strings, re Regex, expectTrue bool) Strings {
   }
   return Strings(ys)
 }
-
