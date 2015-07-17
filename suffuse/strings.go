@@ -1,42 +1,39 @@
 package suffuse
 
-/** Packages confined to this file: regexp
- */
-
 import (
   "strings"
 )
 
-type Lines struct {
-  Strings []string
+type Strings struct {
+  strings []string
 }
 
-func NewLines(lines ...string) Lines { return Lines { lines } }
+func Strs(lines ...string) Strings { return Strings { lines } }
 
-func BytesToLines(bytes []byte) Lines {
+func BytesToLines(bytes []byte) Strings {
   return SplitLines(strings.TrimSpace(string(bytes)))
 }
 
-func (x Lines) Join(sep string) string   { return strings.Join(x.Strings, sep) }
-func (x Lines) JoinWords() string        { return x.TrimAll().Join(" ")        }
-func (x Lines) Len() int                 { return len(x.Strings)               }
-func (x Lines) String() string           { return x.Join("\n")                 }
+func (x Strings) Join(sep string) string { return strings.Join(x.strings, sep) }
+func (x Strings) JoinWords() string      { return x.TrimAll().Join(" ")        }
+func (x Strings) Len() int               { return len(x.strings)               }
+func (x Strings) String() string         { return x.Join("\n")                 }
 
-func (x Lines) TrimAll() Lines { return x.Map(func(s string)string { return strings.TrimSpace(s) }) }
+func (x Strings) TrimAll() Strings { return x.Map(func(s string)string { return strings.TrimSpace(s) }) }
 
-func (x Lines) Map(f func(string)string) Lines {
+func (x Strings) Map(f func(string)string) Strings {
   res := make([]string, x.Len())
-  for i, x := range x.Strings { res[i] = f(x) }
-  return NewLines(res...)
+  for i, x := range x.strings { res[i] = f(x) }
+  return Strs(res...)
 }
-func (x Lines) FlatMap(f func(string)[]string) Lines {
+func (x Strings) FlatMap(f func(string)[]string) Strings {
   res := make([]string, 0)
-  for _, x := range x.Strings { res = append(res, f(x)...) }
-  return NewLines(res...)
+  for _, x := range x.strings { res = append(res, f(x)...) }
+  return Strs(res...)
 }
-func (x Lines) Fold(f func(string, string)string) string {
+func (x Strings) Fold(f func(string, string)string) string {
   res := ""
-  for _, x := range x.Strings { res = f(res, x) }
+  for _, x := range x.strings { res = f(res, x) }
   return res
 }
 
@@ -55,7 +52,7 @@ func (x Lines) Fold(f func(string, string)string) string {
 // TrimPrefix(s, prefix string) string
 // TrimSuffix(s, suffix string) string
 
-func SplitLines(s string) Lines { return NewLines(strings.Split(s, "\n")...) }
+func SplitLines(s string) Strings { return Strs(strings.Split(s, "\n")...) }
 
 /** String manipulation, should go on a string type but doesn't yet.
  */

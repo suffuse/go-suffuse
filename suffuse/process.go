@@ -18,8 +18,8 @@ type ExecResult struct {
 
 func cwd() Path        { return MaybePath(os.Getwd()) }
 
-func (x ExecResult) OneLine() string { return x.Lines().JoinWords()  }
-func (x ExecResult) Lines() Lines    { return BytesToLines(x.Stdout) }
+func (x ExecResult) OneLine() string { return x.Strings().JoinWords()  }
+func (x ExecResult) Strings() Strings    { return BytesToLines(x.Stdout) }
 func (x ExecResult) Slurp() string   { return string(x.Stdout)       }
 func (x ExecResult) Success() bool   { return x.Err == nil           }
 

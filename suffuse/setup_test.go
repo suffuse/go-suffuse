@@ -47,7 +47,7 @@ ln -s dir dlink
 seq 1 10000 > bigfile.txt
   `)
 
-  return NewLines(pre, xattrPart, post).String()
+  return Strs(pre, xattrPart, post).String()
 }
 
 func startFuse(args ...string) {
@@ -104,11 +104,11 @@ func (s *Tsfs) TearDownTest(c *C) {
   logD("TearDownTest(%s)\n", c.GetTestLog())
 }
 
-func (x Lines) filter(re Regex) Lines    { return filterCommon(x, re, true)    }
-func (x Lines) filterNot(re Regex) Lines { return filterCommon(x, re, false)   }
+func (x Strings) filter(re Regex) Strings    { return filterCommon(x, re, true)    }
+func (x Strings) filterNot(re Regex) Strings { return filterCommon(x, re, false)   }
 
-func filterCommon(x Lines, re Regex, expectTrue bool) Lines {
-  xs := x.Strings
+func filterCommon(x Strings, re Regex, expectTrue bool) Strings {
+  xs := x.strings
   ys := make([]string, 0)
 
   for _, line := range xs {
@@ -116,6 +116,6 @@ func filterCommon(x Lines, re Regex, expectTrue bool) Lines {
       ys = append(ys, line)
     }
   }
-  return NewLines(ys...)
+  return Strs(ys...)
 }
 
