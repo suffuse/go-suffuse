@@ -16,7 +16,7 @@ type ExecResult struct {
   Stdout []byte
 }
 
-func cwd() Path        { return MaybePath(os.Getwd()) }
+func cwd() Path        { return maybePath(os.Getwd()) }
 
 func (x ExecResult) OneLine() string { return x.Lines().JoinWords()  }
 func (x ExecResult) Lines() Lines    { return BytesToLines(x.Stdout) }
@@ -26,6 +26,7 @@ func (x ExecResult) Success() bool   { return x.Err == nil           }
 func Exec(args ...string) ExecResult                { return ExecIn(cwd(), args...)            }
 func ExecBash(script string) ExecResult             { return ExecBashIn(cwd(), script)         }
 func ExecBashIn(cwd Path, script string) ExecResult { return ExecIn(cwd, "bash", "-c", script) }
+func ExecSlurp(args ...string)string                { return Exec(args...).Slurp()             }
 
 func ExecIn(cwd Path, args ...string) ExecResult {
   var res = ExecResult{}

@@ -1,24 +1,24 @@
 package suffuse
 
-import (
-  "os"
-  lg "gopkg.in/inconshreveable/log15.v2"
+import "log"
+
+type LogLevel uint8
+const (
+  LogError LogLevel = iota
+  LogWarn
+  LogInfo
+  LogDebug
+  LogTrace
 )
 
-const defaultLogLevel = lg.LvlWarn
-var sfsLogger = level(defaultLogLevel)
+var sfsLogFlags = 0 // log.LstdFlags would mean date and time
+var sfsLogLevel = LogWarn
+var sfsLogger   = log.New(OsStderr(), "", sfsLogFlags)
 
-func logI(msg string, ctx ...interface{}) { sfsLogger.Info(msg, ctx...) }
-func logD(msg string, ctx ...interface{}) { sfsLogger.Debug(msg, ctx...) }
-func logW(msg string, ctx ...interface{}) { sfsLogger.Warn(msg, ctx...) }
-func logE(msg string, ctx ...interface{}) { sfsLogger.Error(msg, ctx...) }
-func logC(msg string, ctx ...interface{}) { sfsLogger.Crit(msg, ctx...) }
-
-func level(max lg.Lvl) lg.Logger {
-  l := lg.New()
-  handler := lg.StreamHandler(os.Stdout, lg.LogfmtFormat())
-  l.SetHandler(lg.LvlFilterHandler(max, handler))
-  return l
+func logAt(level LogLevel, msg string, ctx ...interface{}) {
+  if sfsLogLevel >= level {
+    sfsLogger.Printf(msg + "\n", ctx...)
+  }
 }
-
-func SetLogLevel(max lg.Lvl) { sfsLogger = level(max) }
+func info(msg string, ctx ...interface{} ) { logAt(LogInfo, msg, ctx...)  }
+func trace(msg string, ctx ...interface{} ) { logAt(LogTrace, msg, ctx...) }
