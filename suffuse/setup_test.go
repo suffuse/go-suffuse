@@ -23,7 +23,7 @@ type Tsfs struct { In Path ; Out Path }
  */
 var totalRegex = Regexp(`total \d+`)
 
-func make_test_fs(os string) string {
+func makeTestFs(os string) string {
   xattrPart := ""
 
   if os == "darwin" {
@@ -75,7 +75,7 @@ func AssertSameFile(c *C, p1, p2 Path) {
 }
 // "found fmt.Stringer" means you can't pass a string. Oyve.
 func AssertString(c *C, found interface{}, expected string) {
-  var str string = ""
+  var str string
   switch found := found.(type) {
     case fmt.Stringer : str = found.String()
     case string       : str = found
@@ -93,7 +93,7 @@ func (s *Tsfs) SetUpSuite(c *C) {
 
   s.In  = Path(c.MkDir())
   s.Out = Path(c.MkDir())
-  c.Assert(ExecBashIn(s.In, make_test_fs(runtime.GOOS)).Err, IsNil)
+  c.Assert(ExecBashIn(s.In, makeTestFs(runtime.GOOS)).Err, IsNil)
   startFuse("suffuse", "-m", string(s.Out), string(s.In))
 }
 
@@ -112,14 +112,11 @@ func (x Lines) filter(re Regex) Lines    { return filterCommon(x, re, true)    }
 func (x Lines) filterNot(re Regex) Lines { return filterCommon(x, re, false)   }
 
 func filterCommon(x Lines, re Regex, expectTrue bool) Lines {
-  xs := x.Strings
-  ys := make([]string, 0)
-
-  for _, line := range xs {
+  var ys []string
+  for _, line := range x.Strings {
     if re.MatchString(line) == expectTrue {
       ys = append(ys, line)
     }
   }
   return Strs(ys...)
 }
-

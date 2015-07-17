@@ -12,10 +12,10 @@ import (
 )
 
 const (
-  FUSE_ROOT_ID    = 1    // fuse-hardcoded node ID of the root inode
-  MAXNAMELEN      = 255
-  MNT_FORCE       = 0x1
-  OsModeAnyDevice = os.ModeDevice | os.ModeCharDevice
+  fuseRootId      = 1    // FUSE_ROOT_ID: fuse-hardcoded node ID of the root inode
+  maxNameLen      = 255  // MAXNAMELEN
+  mntForce        = 0x1  // MNT_FORCE
+  osModeAnyDevice = os.ModeDevice | os.ModeCharDevice
 )
 
 func NotImplemented()error { return fuse.ENOSYS             } // unimplemented
@@ -97,7 +97,7 @@ func SysStatfsToFuseStatfs(s sys.Statfs_t) fuse.StatfsResponse {
     Ffree   : s.Ffree,
     // Bsize   : s.Bsize, // Ignored by osxfuse, uses mount option iosize
     // Frsize  : s.Bsize, // Ignored, but see http://fuse.996288.n3.nabble.com/statvfs-vs-statfs-td8636.html
-    Namelen : MAXNAMELEN,
+    Namelen : maxNameLen,
   }
 }
 
@@ -149,7 +149,7 @@ func GoModeToDirentType(mode os.FileMode) fuse.DirentType {
     case bits & os.ModeSymlink   == os.ModeSymlink   : return fuse.DT_Link
     case bits & os.ModeSocket    == os.ModeSocket    : return fuse.DT_Socket
     case bits & os.ModeNamedPipe == os.ModeNamedPipe : return fuse.DT_FIFO
-    case bits & OsModeAnyDevice  == OsModeAnyDevice  : return fuse.DT_Char
+    case bits & osModeAnyDevice  == osModeAnyDevice  : return fuse.DT_Char
     case bits & os.ModeDevice    == os.ModeDevice    : return fuse.DT_Block
     case bits                    == 0                : return fuse.DT_File
 

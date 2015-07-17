@@ -59,7 +59,7 @@ func (x Lines) Map(f func(string)string) Lines {
   return Strs(res...)
 }
 func (x Lines) FlatMap(f func(string)[]string) Lines {
-  res := make([]string, 0)
+  var res []string
   for _, x := range x.Strings { res = append(res, f(x)...) }
   return Strs(res...)
 }
@@ -77,9 +77,8 @@ func StripMargin(marginChar rune, s string) string {
     index   := strings.IndexRune(trimmed, marginChar)
     if index > -1 {
       return trimmed[index + 1:]
-    } else {
-      return line
     }
+    return line
   }
   return SplitLines(TrimSpace(s)).Map(perLine).String()
 }

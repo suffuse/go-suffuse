@@ -65,7 +65,7 @@ func (x Path) WriteString(text string) error       { return x.WriteBytes([]byte(
 
 func (x Path) Segments() []Name {
   segs := strings.Split(string(x), "/")
-  buf := make([]Name, 0)
+  var buf []Name
   for _, seg := range segs {
     if len(seg) > 0 {
       buf = append(buf, Name(seg))

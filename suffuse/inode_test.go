@@ -6,7 +6,7 @@ import (
 
 /** TODO put these big expected strings in text files and slurp the files.
  */
-var expectedTree string = TrimSpace(`
+var expectedTree = TrimSpace(`
 .
 |-- 02/
 |   |-- 02/

@@ -72,7 +72,7 @@ func (s *Tsfs) TestSedSuffix(c *C) {
 }
 
 func (x Path) walkCollect(f func(string, os.FileInfo) string) Lines {
-  res := make([]string, 0)
+  var res []string
   x.Walk(
     func(path string, info os.FileInfo, err error) error {
       rel, err := filepath.Rel(string(x), path)
