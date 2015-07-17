@@ -45,7 +45,7 @@ EOF
 chmod +x umltest.inner.sh
 
 # Execute the script in user mode linux
-/usr/bin/linux.uml init=`pwd`/umltest.inner.sh eth0=slirp rootfstype=hostfs mem=256M rw 2>&1 | \
+/usr/bin/linux.uml init=`pwd`/umltest.inner.sh eth0=slirp rootfstype=hostfs mem=384M rw 2>&1 | \
    egrep -v 'modprobe: FATAL: Could not load /lib/modules|\[no test files\]'
 
 exit $(<umltest.status)

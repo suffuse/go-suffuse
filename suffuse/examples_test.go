@@ -122,7 +122,7 @@ func compareWithOptions(t *T, opts string, result string, expected string) {
 }
 
 func echo(s string) string {
-  trimmed := strings.TrimSpace(s)
+  trimmed := TrimSpace(s)
   escaped := strings.Replace(trimmed, "\n", "\\n", -1)
   return `<(echo -e "\n` + escaped + `")`
 }
