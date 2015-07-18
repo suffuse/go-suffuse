@@ -3,12 +3,10 @@ package suffuse
 import (
   "fmt"
   "testing"
-  "strings"
   "runtime"
   . "gopkg.in/check.v1"
   "math/rand"
   "time"
-  "regexp"
 )
 
 var _ = Suite(&Tsfs{})
@@ -23,38 +21,33 @@ type Tsfs struct { In Path ; Out Path }
  *  In particular the "total NN" line differs. The details are
  *  not especially interesting. We just filter out the tottal line.
  */
-type Regex struct {
-  *regexp.Regexp
-}
-var totalRegex = Regex { regexp.MustCompile(`total \d+`) }
+var totalRegex = Regexp(`total \d+`)
 
 func make_test_fs(os string) string {
   xattrPart := ""
 
   if os == "darwin" {
-    xattrPart = "\n" + strings.TrimSpace(`
+    xattrPart = "\n" + TrimSpace(`
       xattr    -w suffuse.type link file.txt
       xattr -s -w suffuse.type link flink.txt
     `)
   }
-  pre := strings.TrimSpace(`
+  pre := TrimSpace(`
 echo "hello world" > file.txt
 ln -s file.txt flink.txt
   `)
-  post := strings.TrimSpace(`
+  post := TrimSpace(`
 mkdir dir
 echo "hello dir" > dir/sub.txt
 ln -s dir dlink
 seq 1 10000 > bigfile.txt
   `)
 
-  return NewLines(pre, xattrPart, post).String()
+  return Strings{pre, xattrPart, post}.String()
 }
 
 func startFuse(args ...string) {
-  conf, conf_err := CreateSfsConfig(args)
-  if conf_err != nil { return }
-
+  conf := CreateSfsConfig(args)
   mfs, err := NewSfs(conf)
   MaybePanic(err)
 
@@ -92,7 +85,7 @@ func AssertString(c *C, found interface{}, expected string) {
 }
 
 func (s *Tsfs) SetUpSuite(c *C) {
-  logI("SetUpSuite(%s)\n", *s)
+  info("SetUpSuite(%s)\n", *s)
   psutilHostDump()
 
   // rand.Int() is used by the check library. Without this line it not so random...
@@ -106,20 +99,20 @@ func (s *Tsfs) SetUpSuite(c *C) {
 
 func (s *Tsfs) TearDownSuite(c *C) {
   s.Out.SysUnmount()
-  logI("TearDownSuite(%s)\n", c.TestName())
+  info("TearDownSuite(%s)\n", c.TestName())
 }
 func (s *Tsfs) SetUpTest(c *C) {
-  logD("SetUpTest(%s)\n", c.TestName())
+  trace("SetUpTest(%s)\n", c.TestName())
 }
 func (s *Tsfs) TearDownTest(c *C) {
-  logD("TearDownTest(%s)\n", c.GetTestLog())
+  trace("TearDownTest(%s)\n", c.GetTestLog())
 }
 
-func (x Lines) filter(re Regex) Lines    { return filterCommon(x, re, true)    }
-func (x Lines) filterNot(re Regex) Lines { return filterCommon(x, re, false)   }
+func (x Strings) filter(re Regex) Strings    { return filterCommon(x, re, true)    }
+func (x Strings) filterNot(re Regex) Strings { return filterCommon(x, re, false)   }
 
-func filterCommon(x Lines, re Regex, expectTrue bool) Lines {
-  xs := x.Strings
+func filterCommon(x Strings, re Regex, expectTrue bool) Strings {
+  xs := x.Array()
   ys := make([]string, 0)
 
   for _, line := range xs {
@@ -127,6 +120,6 @@ func filterCommon(x Lines, re Regex, expectTrue bool) Lines {
       ys = append(ys, line)
     }
   }
-  return NewLines(ys...)
+  return Strings(ys)
 }
 

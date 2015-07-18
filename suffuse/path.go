@@ -8,7 +8,14 @@ import (
   "io/ioutil"
 )
 
+type Name string
 type Path string
+
+func Names(names ...string)[]Name {
+  xs := make([]Name, len(names))
+  for i := range names { xs[i] = Name(names[i]) }
+  return xs
+}
 
 var NoPath = Path("")
 
@@ -17,42 +24,64 @@ func Paths(paths ...string) []Path {
   for i, p := range paths { xs[i] = Path(p) }
   return xs
 }
-
 func MaybePath(path string, err error) Path {
-  if err != nil { return NoPath }
+  if IsError(err) { return NoPath }
   return Path(path)
 }
 
-func (x Path) MaybePath(result string, err error) Path {
-  if err != nil { return x }
-  return Path(result)
+func (x Path) Absolute() Path                      { return MaybePath(x.GoAbs())                              }
+func (x Path) EvalSymlinks() Path                  { return MaybePath(x.GoEvalSymlinks())                     }
+func (x Path) Extension() string                   { return x.GoExt()                                         }
+func (x Path) FileExists() bool                    { return NoError(x.OsStat())                               } // https://github.com/golang/go/issues/1312
+func (x Path) GoAbs() (string, error)              { return filepath.Abs(string(x))                           }
+func (x Path) GoDir() string                       { return filepath.Dir(string(x))                           }
+func (x Path) GoEvalSymlinks() (string, error)     { return filepath.EvalSymlinks(string(x))                  }
+func (x Path) GoExt() string                       { return filepath.Ext(string(x))                           }
+func (x Path) IndexOfByte(b byte) int              { return strings.IndexByte(string(x), b)                   }
+func (x Path) IoReadDir() ([]os.FileInfo, error)   { return ioutil.ReadDir(string(x))                         }
+func (x Path) IoReadFile() ([]byte, error)         { return ioutil.ReadFile(string(x))                        }
+func (x Path) Parent() Path                        { return Path(x.GoDir())                                   }
+func (x Path) Slice(start, end int) Path           { return Path(string(x)[start:end])                        }
+func (x Path) Slurp() string                       { return maybeByteString(x.IoReadFile())                   }
+func (x Path) SlurpBytes() []byte                  { return maybeBytes(x.IoReadFile())                        }
+func (x Path) Walk(walkFn filepath.WalkFunc) error { return filepath.Walk(string(x), walkFn)                  }
+func (x Path) WriteBytes(bs []byte) error          { return ioutil.WriteFile(string(x), bs, defaultFilePerms) }
+func (x Path) WriteString(text string) error       { return x.WriteBytes([]byte(text))                        }
+func (x Path) FollowOnce() Path                    { return x.newPathOrSelf(x.OsReadLink())                   }
+
+// If there's no error, the new path. Otherwise, the receiver path.
+func (x Path) newPathOrSelf(newPath string, err error) Path {
+  if IsError(nil) { return x }
+  return Path(newPath)
 }
 
-func (x Path) Name() string           { return filepath.Base(string(x))                        }
-func (x Path) Extension() string      { return filepath.Ext(string(x))                         }
-func (x Path) Absolute() Path         { return MaybePath(filepath.Abs(string(x)))              }
-func (x Path) Relative(abs Path) Path { return MaybePath(filepath.Rel(string(x), string(abs))) }
-func (x Path) Clean() Path            { return Path(filepath.Clean(string(x)))                 }
-func (x Path) Parent() Path           { return Path(filepath.Dir(string(x)))                   }
-func (x Path) Segments() []string     { return filepath.SplitList(string(x))                   }
-func (x Path) EvalSymlinks() Path     { return MaybePath(filepath.EvalSymlinks(string(x)))     }
+func (x Path) Segments() []Name {
+  segs := strings.Split(string(x), "/")
+  buf := make([]Name, 0)
+  for _, seg := range segs {
+    if len(seg) > 0 {
+      buf = append(buf, Name(seg))
+    }
+  }
+  return buf
+}
 
 func (x Path) IsAbs() bool   { return filepath.IsAbs(string(x)) }
 func (x Path) IsEmpty() bool { return string(x) == ""            }
 
-func (x Path) OsChdir() error                         { return os.Chdir(string(x))                 }
-func (x Path) OsChmod(mode os.FileMode) error         { return os.Chmod(string(x), mode)           }
-func (x Path) OsChown(uid, gid int) error             { return os.Chown(string(x), uid, gid)       }
-func (x Path) OsChtimes(atime, mtime time.Time) error { return os.Chtimes(string(x), atime, mtime) }
-func (x Path) OsLchown(uid, gid int) error            { return os.Lchown(string(x), uid, gid)      }
+func (x Path) OsChdir() error                         { return os.Chdir(string(x))                   }
+func (x Path) OsChmod(mode os.FileMode) error         { return os.Chmod(string(x), mode)             }
+func (x Path) OsChown(uid, gid int) error             { return os.Chown(string(x), uid, gid)         }
+func (x Path) OsChtimes(atime, mtime time.Time) error { return os.Chtimes(string(x), atime, mtime)   }
+func (x Path) OsLchown(uid, gid int) error            { return os.Lchown(string(x), uid, gid)        }
 func (x Path) OsLink(to Path) error                   { return os.Link(string(x), string(to))        }
-func (x Path) OsMkdir(perm os.FileMode) error         { return os.Mkdir(string(x), perm)           }
-func (x Path) OsMkdirAll(perm os.FileMode) error      { return os.MkdirAll(string(x), perm)        }
-func (x Path) OsRemove() error                        { return os.Remove(string(x))                }
-func (x Path) OsRemoveAll() error                     { return os.RemoveAll(string(x))             }
+func (x Path) OsMkdir(perm os.FileMode) error         { return os.Mkdir(string(x), perm)             }
+func (x Path) OsMkdirAll(perm os.FileMode) error      { return os.MkdirAll(string(x), perm)          }
+func (x Path) OsRemove() error                        { return os.Remove(string(x))                  }
+func (x Path) OsRemoveAll() error                     { return os.RemoveAll(string(x))               }
 func (x Path) OsRename(to Path) error                 { return os.Rename(string(x), string(to))      }
 func (x Path) OsSymlink(target Path) error            { return os.Symlink(string(x), string(target)) }
-func (x Path) OsTruncate(size int64) error            { return os.Truncate(string(x), size)        }
+func (x Path) OsTruncate(size int64) error            { return os.Truncate(string(x), size)          }
 
 func (x Path) OsCreate() (*os.File, error)                             { return os.Create(string(x))               }
 func (x Path) OsLstat() (os.FileInfo, error)                           { return os.Lstat(string(x))                }
@@ -69,16 +98,6 @@ func (x Path) OsStatAtimeMtime() (atime time.Time, mtime time.Time) {
   return SysAtimeMtime(&stat)
 }
 
-func (x Path) IndexOfByte(b byte) int    { return strings.IndexByte(string(x), b) }
-func (x Path) Slice(start, end int) Path { return Path(string(x)[start:end])      }
-
-func (x Path) SplitAround(idx int) (Path, string) {
-  max := len(string(x)) - 1
-  if (idx > 0 && idx < max) {
-    return x.Slice(0, idx), string(x)[idx+1:]
-  }
-  return x, ""
-}
 func (x Path) Split() (Path, string) {
   dir, file := filepath.Split(string(x))
   return Path(dir), file
@@ -88,14 +107,6 @@ func (x Path) Glob(glob string) []Path {
   if err != nil { return Paths() }
   return Paths(ms...)
 }
-
-func (x Path) WriteBytes(bs []byte) error        { return ioutil.WriteFile(string(x), bs, defaultFilePerms) }
-func (x Path) WriteString(text string) error     { return x.WriteBytes([]byte(text))                      }
-func (x Path) IoReadDir() ([]os.FileInfo, error) { return ioutil.ReadDir(string(x))                         }
-func (x Path) IoReadFile() ([]byte, error)       { return ioutil.ReadFile(string(x))                        }
-
-func (x Path) FollowOnce() Path { return x.MaybePath(x.OsReadLink()) }
-
 func (x Path) Join(elem ...string) Path {
   buf := make([]string, len(elem) + 1)
   buf = append(buf, string(x))
@@ -103,16 +114,6 @@ func (x Path) Join(elem ...string) Path {
   return Path(filepath.Join(buf...))
 }
 
-func (x Path) Slurp() string {
-  bytes, err := ioutil.ReadFile(string(x))
-  if err != nil { return "" }
-  return string(bytes)
-}
-func (x Path) SlurpBytes() []byte {
-  bytes, err := ioutil.ReadFile(string(x))
-  if err != nil { bytes = nil }
-  return bytes
-}
 func (x Path) Ino() uint64 {
   stat, err := x.SysStatLink()
   if err != nil { return 0 }
@@ -129,7 +130,6 @@ func (x Path) FollowAll() Path {
   if err != nil { return x }
   return Path(next).FollowAll()
 }
-
 func (x Path) ReadDirnames() []string {
   fd, err := x.OsOpen()
   if err != nil { return nil }
@@ -137,20 +137,28 @@ func (x Path) ReadDirnames() []string {
   if err != nil { return nil }
   return names
 }
-func (x Path) ReadDirnodes() []os.FileInfo {
-  fd, err := x.OsOpen()
-  if err != nil { return nil }
-  names, err := fd.Readdir(0)
-  if err != nil { return nil }
-  return names
+
+func IoTempDir(prefix string) Path {
+  path, err := ioutil.TempDir("", prefix)
+  MaybePanic(err)
+  return Path(path)
+}
+func IoTempFile(prefix string) *os.File {
+  fh, err := ioutil.TempFile("", prefix)
+  MaybePanic(err)
+  return fh
 }
 
-func (x Path) Walk(walkFn filepath.WalkFunc) error {
-  return filepath.Walk(string(x), walkFn)
+func ScratchDir() Path {
+  path := IoTempDir("suffuse")
+  deleteOnExit = append(deleteOnExit, path)
+  return path
 }
-
-// https://github.com/golang/go/issues/1312
-func (x Path) FileExists() bool {
-  _, err := x.OsStat()
-  return err == nil
+func ScratchFile() Path {
+  fh := IoTempFile("suffuse")
+  path := Path(fh.Name())
+  deleteOnExit = append(deleteOnExit, path)
+  return path
 }
+// TODO - actually delete on exit.
+var deleteOnExit = make([]Path, 0)

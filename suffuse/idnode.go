@@ -34,7 +34,7 @@ func (x *IdNode) String() string { return string(x.Path) }
 // (permission granted), relying on checks in Open instead.
 // TODO - permissions check.
 func (x *IdNode) Access(ctx context.Context, req *f.AccessRequest) error {
-  logD("Access", "path", x.Path)
+  trace("Access", "path", x.Path)
   return nil
 }
 
@@ -108,7 +108,7 @@ func setattrTruncate(path Path, req *f.SetattrRequest) error {
 // For example, the method should not change the mode of the file
 // unless req.Valid.Mode() is true.
 func (x *IdNode) Setattr(ctx context.Context, req *f.SetattrRequest, resp *f.SetattrResponse) error {
-  logD("Setattr", "path", x.Path, "req", *req)
+  trace("Setattr", "path", x.Path, "req", *req)
   // Not Yet Implemented:
   // req.Valid.{ Handle, LockOwner, Crtime, Chgtime, Bkuptime, Flags }
 
@@ -121,7 +121,7 @@ func (x *IdNode) Setattr(ctx context.Context, req *f.SetattrRequest, resp *f.Set
 }
 
 func (x *IdNode) Attr(ctx context.Context, attr *f.Attr) error {
-  logD("Attr", "path", x.Path)
+  trace("Attr", "path", x.Path)
 
   for _, rule := range rules {
     a := rule.MetaData(x.Path)
@@ -136,7 +136,7 @@ func (x *IdNode) Attr(ctx context.Context, attr *f.Attr) error {
 }
 
 func (x *IdNode) Lookup(ctx context.Context, name string) (fs.Node, error) {
-  logD("Lookup", "path", x.Path, "name", name)
+  trace("Lookup", "path", x.Path, "name", name)
   child := x.Path.Join(name)
 
   var a f.Attr
@@ -149,7 +149,7 @@ func (x *IdNode) Lookup(ctx context.Context, name string) (fs.Node, error) {
 }
 
 func (x *IdNode) ReadDirAll(ctx context.Context) ([]f.Dirent, error) {
-  logD("ReadDirAll", "path", x.Path)
+  trace("ReadDirAll", "path", x.Path)
 
   for _, rule := range rules {
     children := rule.DirData(x.Path)
@@ -159,7 +159,7 @@ func (x *IdNode) ReadDirAll(ctx context.Context) ([]f.Dirent, error) {
 }
 func (x *IdNode) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, error) {
   path := x.Path
-  logD("Readlink", "path", path)
+  trace("Readlink", "path", path)
 
   for _, rule := range rules {
     target := rule.LinkData(path)
@@ -169,7 +169,7 @@ func (x *IdNode) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, 
 }
 func (x *IdNode) Read(ctx context.Context, req *f.ReadRequest, resp *f.ReadResponse) error {
   path := x.Path
-  logD("Read", "path", path, "req", *req)
+  trace("Read", "path", path, "req", *req)
 
   for _, rule := range rules {
     bytes := rule.FileData(path)
@@ -182,7 +182,7 @@ func (x *IdNode) Read(ctx context.Context, req *f.ReadRequest, resp *f.ReadRespo
 }
 func (x *IdNode) ReadAll(ctx context.Context) ([]byte, error) {
   path := x.Path
-  logD("ReadAll", "path", path)
+  trace("ReadAll", "path", path)
 
   for _, rule := range rules {
     bytes := rule.FileData(path)
@@ -197,7 +197,7 @@ func (x *IdNode) ReadAll(ctx context.Context) ([]byte, error) {
  */
 
 func (x *IdNode) Mkdir(ctx context.Context, req *f.MkdirRequest) (fs.Node, error) {
-  logD("Mkdir", "path", x.Path, "req", *req)
+  trace("Mkdir", "path", x.Path, "req", *req)
 
   name := req.Name
   mode := req.Mode
@@ -211,29 +211,29 @@ func (x *IdNode) Mkdir(ctx context.Context, req *f.MkdirRequest) (fs.Node, error
   return NewIdNode(path), nil
 }
 func (x *IdNode) Create(ctx context.Context, req *f.CreateRequest, resp *f.CreateResponse) (fs.Node, fs.Handle, error) {
-  logD("Create", "path", x.Path, "req", *req)
+  trace("Create", "path", x.Path, "req", *req)
   return nil, nil, f.ENOTSUP
 }
 
 /** Xattr ops.
  */
 func (x *IdNode) Getxattr(ctx context.Context, req *f.GetxattrRequest, resp *f.GetxattrResponse) error {
-  logD("Getxattr", "path", x.Path, "xattr", req.Name)
+  trace("Getxattr", "path", x.Path, "xattr", req.Name)
   bytes := xattr.Get(string(x.Path), req.Name)
   if bytes != nil { resp.Xattr = bytes }
   return nil
 }
 func (x *IdNode) Listxattr(ctx context.Context, req *f.ListxattrRequest, resp *f.ListxattrResponse) error {
-  logD("Listxattr", "path", x.Path)
+  trace("Listxattr", "path", x.Path)
   names := xattr.List(string(x.Path))
   if names != nil { resp.Append(names...) }
   return nil
 }
 func (x *IdNode) Setxattr(ctx context.Context, req *f.SetxattrRequest) error {
-  logD("Setxattr", "path", x.Path, "name", req.Name, "value", string(req.Xattr))
+  trace("Setxattr", "path", x.Path, "name", req.Name, "value", string(req.Xattr))
   return xattr.Set(string(x.Path), req.Name, req.Xattr)
 }
 func (x *IdNode) Removexattr(ctx context.Context, req *f.RemovexattrRequest) error {
-  logD("Removexattr", "path", x.Path, "name", req.Name)
+  trace("Removexattr", "path", x.Path, "name", req.Name)
   return xattr.Remove(string(x.Path), req.Name)
 }
