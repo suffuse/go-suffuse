@@ -12,13 +12,19 @@ import (
 )
 
 const (
-  maxNameLen      = 255
-  mntForce        = 0x1
+  fuseRootId      = 1    // FUSE_ROOT_ID: fuse-hardcoded node ID of the root inode
+  maxNameLen      = 255  // MAXNAMELEN
+  mntForce        = 0x1  // MNT_FORCE
   osModeAnyDevice = os.ModeDevice | os.ModeCharDevice
 )
 
+func NotImplemented()error { return fuse.ENOSYS             } // unimplemented
+func NotEmpty()error       { return fuse.EEXIST             } // file exists
+func NotExist()error       { return fuse.ENOENT             }
 func NotADir()error        { return fuse.Errno(sys.ENOTDIR) } // not a directory
 func NotValidArg()error    { return fuse.Errno(sys.EINVAL)  } // invalid argument
+func NotSupported()error   { return fuse.ENOTSUP            }
+func IsADir()error         { return fuse.Errno(sys.EISDIR)  } // is a directory
 
 /** Install a signal handler for INT/TERM.
  */
@@ -46,6 +52,13 @@ func (x Path) SysStatfs() (sys.Statfs_t, error) {
   s := sys.Statfs_t { }
   err := sys.Statfs(string(x), &s)
   return s, err
+}
+
+// Incredibly, there's no way to get the umask without setting the umask.
+func GetUmask()os.FileMode {
+  current := sys.Umask(0)
+  sys.Umask(current)
+  return os.FileMode(current)
 }
 
 /** Conversions amongst unix, fuse, and go data structures.
@@ -132,13 +145,13 @@ func GoModeToDirentType(mode os.FileMode) fuse.DirentType {
   bits := mode & os.ModeType
 
   switch {
-    case bits                    == 0                : return fuse.DT_File
     case bits & os.ModeDir       == os.ModeDir       : return fuse.DT_Dir
     case bits & os.ModeSymlink   == os.ModeSymlink   : return fuse.DT_Link
     case bits & os.ModeSocket    == os.ModeSocket    : return fuse.DT_Socket
     case bits & os.ModeNamedPipe == os.ModeNamedPipe : return fuse.DT_FIFO
     case bits & osModeAnyDevice  == osModeAnyDevice  : return fuse.DT_Char
     case bits & os.ModeDevice    == os.ModeDevice    : return fuse.DT_Block
+    case bits                    == 0                : return fuse.DT_File
 
     default:  return fuse.DT_Unknown
   }

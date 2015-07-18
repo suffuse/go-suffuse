@@ -1,14 +1,13 @@
 package suffuse
 
 import (
-  "strings"
   "fmt"
   . "gopkg.in/check.v1"
 )
 
 func (s *Tsfs) TestStrings(c *C) {
   text := "foo\nbar\n"
-  s1 := Exec("echo", strings.TrimSpace(text))
+  s1 := Exec("echo", TrimSpace(text))
   c.Assert(s1.Strings(), DeepEquals, Strings{"foo", "bar"})
   c.Assert(s1.Slurp(), Equals, text)
 }
