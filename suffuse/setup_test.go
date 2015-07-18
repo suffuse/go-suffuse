@@ -23,7 +23,7 @@ type Tsfs struct { In Path ; Out Path }
  */
 var totalRegex = Regexp(`total \d+`)
 
-func make_test_fs(os string) string {
+func makeTestFs(os string) string {
   xattrPart := ""
 
   if os == "darwin" {
@@ -93,7 +93,7 @@ func (s *Tsfs) SetUpSuite(c *C) {
 
   s.In  = Path(c.MkDir())
   s.Out = Path(c.MkDir())
-  c.Assert(ExecBashIn(s.In, make_test_fs(runtime.GOOS)).Err, IsNil)
+  c.Assert(ExecBashIn(s.In, makeTestFs(runtime.GOOS)).Err, IsNil)
   startFuse("suffuse", "-m", string(s.Out), string(s.In))
 }
 
@@ -112,10 +112,8 @@ func (x Strings) filter(re Regex) Strings    { return filterCommon(x, re, true) 
 func (x Strings) filterNot(re Regex) Strings { return filterCommon(x, re, false)   }
 
 func filterCommon(x Strings, re Regex, expectTrue bool) Strings {
-  xs := x.Array()
-  ys := make([]string, 0)
-
-  for _, line := range xs {
+  var ys []string
+  for _, line := range x.Array() {
     if re.MatchString(line) == expectTrue {
       ys = append(ys, line)
     }

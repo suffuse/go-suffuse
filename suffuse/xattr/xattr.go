@@ -21,11 +21,11 @@ import (
 // "com.apple.metadata:com_apple_backup_excludeItem"
 // "com.apple.metadata:kMDItemDownloadedDate"
 const (
-  LISTXATTR_BUFSIZE = 2048
-  GETXATTR_BUFSIZE  = 4096
-  OsxTags           = "com.apple.metadata:_kMDItemUserTags"
-  FinderInfo        = "com.apple.FinderInfo"
-  ResourceFork      = "com.apple.ResourceFork"
+  ListBufsize  = 2048
+  GetBufsize   = 4096
+  OsxTags      = "com.apple.metadata:_kMDItemUserTags"
+  FinderInfo   = "com.apple.FinderInfo"
+  ResourceFork = "com.apple.ResourceFork"
 )
 
 func FuseXattrByteBuffer(x interface{}, altSize int) []byte {
@@ -38,7 +38,7 @@ func FuseXattrByteBuffer(x interface{}, altSize int) []byte {
 }
 
 func Get(path string, name string) (bytes []byte) {
-  buf := make([]byte, GETXATTR_BUFSIZE)
+  buf := make([]byte, GetBufsize)
   read, err := syscallx.Getxattr(path, name, buf)
   if err == nil && read > 0 {
     bytes = buf[:read]
@@ -46,10 +46,10 @@ func Get(path string, name string) (bytes []byte) {
   return
 }
 func List(path string) (names []string) {
-  buf := make([]byte, LISTXATTR_BUFSIZE)
+  buf := make([]byte, ListBufsize)
   read, err := syscallx.Listxattr(path, buf)
   if err == nil && read > 0 {
-    names = XattrListToStrings(buf[:read])
+    names = ListToStrings(buf[:read])
   }
   return
 }
@@ -62,9 +62,9 @@ func Remove(path string, key string) error {
 
 // The extended attribute names are simple NULL-terminated
 // UTF-8 strings and are returned in arbitrary order.
-func XattrListToStrings(buf []byte) []string {
+func ListToStrings(buf []byte) []string {
   buflen := len(buf)
-  res := make([]string, 0)
+  var res []string
   idx := 0
 
   for idx < buflen {

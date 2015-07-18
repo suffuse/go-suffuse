@@ -155,7 +155,7 @@ func (x *IdNode) ReadDirAll(ctx context.Context) ([]f.Dirent, error) {
     children := rule.DirData(x.Path)
     if children != nil { return children, nil }
   }
-  return nil, ENOTDIR
+  return nil, NotADir()
 }
 func (x *IdNode) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, error) {
   path := x.Path
@@ -165,7 +165,7 @@ func (x *IdNode) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, 
     target := rule.LinkData(path)
     if target != nil { return string(*target), nil }
   }
-  return "", EINVAL
+  return "", NotValidArg()
 }
 func (x *IdNode) Read(ctx context.Context, req *f.ReadRequest, resp *f.ReadResponse) error {
   path := x.Path

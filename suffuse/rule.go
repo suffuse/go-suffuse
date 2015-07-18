@@ -80,7 +80,7 @@ func (x *FileCommand) FileData(path Path)[]byte {
   subpath, cmd := x.split(path)
   if cmd == "" { return nil }
 
-  var c string = x.Command
+  var c = x.Command
   c = strings.Replace(c, "$file", string(subpath), -1)
   c = strings.Replace(c, "$args", cmd, -1)
 
@@ -93,9 +93,8 @@ func (x *FileCommand) split(p Path) (Path, string) {
   subpath := Path(split[0])
   if len(split) > 1 {
     return subpath, split[1]
-  } else {
-    return subpath, ""
   }
+  return subpath, ""
 }
 
 func (x *FileConversion) MetaData(path Path)*fuse.Attr {
