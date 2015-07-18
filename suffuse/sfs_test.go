@@ -17,7 +17,7 @@ func (s *Tsfs) TestSameWithLs(c *C) {
   if runtime.GOOS == "darwin" {
     AssertSame(s, c,
       func(p Path) string {
-        return ExecIn(p, "ls", "-laR@").Strings().filterNot(totalRegex).String()
+        return ExecIn(p, "ls", "-laR@").Lines().filterNot(totalRegex).String()
       },
     )
   }
@@ -25,7 +25,7 @@ func (s *Tsfs) TestSameWithLs(c *C) {
 func (s *Tsfs) TestSameWithFind(c *C) {
   AssertSame(s, c,
     func(p Path) string {
-      return ExecIn(p, "find", ".").Strings().filterNot(totalRegex).String()
+      return ExecIn(p, "find", ".").Lines().filterNot(totalRegex).String()
     },
   )
 }
