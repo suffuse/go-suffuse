@@ -4,7 +4,6 @@ import (
   "os"
   "time"
   "strings"
-  "io"
   "path/filepath"
   "io/ioutil"
 )
@@ -12,42 +11,28 @@ import (
 type Name string
 type Path string
 
+func Names(names ...string)[]Name {
+  xs := make([]Name, len(names))
+  for i := range names { xs[i] = Name(names[i]) }
+  return xs
+}
+
 var NoPath = Path("")
 
-// TODO - actually delete on exit.
-var deleteOnExit = make([]Path, 0)
 func Paths(paths ...string) []Path {
   xs := make([]Path, len(paths))
   for i, p := range paths { xs[i] = Path(p) }
   return xs
 }
-func maybePath(path string, err error) Path {
+func MaybePath(path string, err error) Path {
   if IsError(err) { return NoPath }
   return Path(path)
 }
-// If there's no error, the new path. Otherwise, the receiver path.
-func (x Path) newPathOrSelf(newPath string, err error) Path {
-  if IsError(nil) { return x }
-  return Path(newPath)
-}
-func NoError(result interface{}, err error)bool { return IsNilError(err) }
 
-func IoTempDir(prefix string) Path {
-  path, err := ioutil.TempDir("", prefix)
-  MaybePanic(err)
-  return Path(path)
-}
-func IoTempFile(prefix string) *os.File {
-  fh, err := ioutil.TempFile("", prefix)
-  MaybePanic(err)
-  return fh
-}
-
-func (x Path) Absolute() Path                      { return maybePath(x.GoAbs())                              }
-func (x Path) EvalSymlinks() Path                  { return maybePath(x.GoEvalSymlinks())                     }
+func (x Path) Absolute() Path                      { return MaybePath(x.GoAbs())                              }
+func (x Path) EvalSymlinks() Path                  { return MaybePath(x.GoEvalSymlinks())                     }
 func (x Path) Extension() string                   { return x.GoExt()                                         }
 func (x Path) FileExists() bool                    { return NoError(x.OsStat())                               } // https://github.com/golang/go/issues/1312
-func (x Path) FollowOnce() Path                    { return x.newPathOrSelf(x.OsReadLink())                   }
 func (x Path) GoAbs() (string, error)              { return filepath.Abs(string(x))                           }
 func (x Path) GoDir() string                       { return filepath.Dir(string(x))                           }
 func (x Path) GoEvalSymlinks() (string, error)     { return filepath.EvalSymlinks(string(x))                  }
@@ -62,6 +47,13 @@ func (x Path) SlurpBytes() []byte                  { return maybeBytes(x.IoReadF
 func (x Path) Walk(walkFn filepath.WalkFunc) error { return filepath.Walk(string(x), walkFn)                  }
 func (x Path) WriteBytes(bs []byte) error          { return ioutil.WriteFile(string(x), bs, defaultFilePerms) }
 func (x Path) WriteString(text string) error       { return x.WriteBytes([]byte(text))                        }
+func (x Path) FollowOnce() Path                    { return x.newPathOrSelf(x.OsReadLink())                   }
+
+// If there's no error, the new path. Otherwise, the receiver path.
+func (x Path) newPathOrSelf(newPath string, err error) Path {
+  if IsError(nil) { return x }
+  return Path(newPath)
+}
 
 func (x Path) Segments() []Name {
   segs := strings.Split(string(x), "/")
@@ -76,8 +68,6 @@ func (x Path) Segments() []Name {
 
 func (x Path) IsAbs() bool   { return filepath.IsAbs(string(x)) }
 func (x Path) IsEmpty() bool { return string(x) == ""            }
-
-func OsStderr()io.Writer { return os.Stderr }
 
 func (x Path) OsChdir() error                         { return os.Chdir(string(x))                   }
 func (x Path) OsChmod(mode os.FileMode) error         { return os.Chmod(string(x), mode)             }
@@ -148,6 +138,17 @@ func (x Path) ReadDirnames() []string {
   return names
 }
 
+func IoTempDir(prefix string) Path {
+  path, err := ioutil.TempDir("", prefix)
+  MaybePanic(err)
+  return Path(path)
+}
+func IoTempFile(prefix string) *os.File {
+  fh, err := ioutil.TempFile("", prefix)
+  MaybePanic(err)
+  return fh
+}
+
 func ScratchDir() Path {
   path := IoTempDir("suffuse")
   deleteOnExit = append(deleteOnExit, path)
@@ -159,3 +160,5 @@ func ScratchFile() Path {
   deleteOnExit = append(deleteOnExit, path)
   return path
 }
+// TODO - actually delete on exit.
+var deleteOnExit = make([]Path, 0)

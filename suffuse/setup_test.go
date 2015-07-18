@@ -42,7 +42,7 @@ ln -s dir dlink
 seq 1 10000 > bigfile.txt
   `)
 
-  return Strs(pre, xattrPart, post).String()
+  return Strings{pre, xattrPart, post}.String()
 }
 
 func startFuse(args ...string) {
@@ -101,7 +101,7 @@ func (x Strings) filter(re Regex) Strings    { return filterCommon(x, re, true) 
 func (x Strings) filterNot(re Regex) Strings { return filterCommon(x, re, false)   }
 
 func filterCommon(x Strings, re Regex, expectTrue bool) Strings {
-  xs := x.strings
+  xs := x.Array()
   ys := make([]string, 0)
 
   for _, line := range xs {
@@ -109,6 +109,6 @@ func filterCommon(x Strings, re Regex, expectTrue bool) Strings {
       ys = append(ys, line)
     }
   }
-  return Strs(ys...)
+  return Strings(ys)
 }
 

@@ -10,13 +10,17 @@ import (
  *  does NOT test as nil. It's apparently a non-nil interface with
  *  a nil value. That's what the second test is for.
  */
-func IsNilError(e error)bool {
+func IsNilError(e error) bool {
   return e == nil || reflect.ValueOf(e).IsNil()
 }
-func IsError(e error)bool {
+func IsError(e error) bool {
   return !IsNilError(e)
 }
-func TypedString(x interface{})string {
+func NoError(_ interface{}, err error) bool {
+  return IsNilError(err)
+}
+
+func TypedString(x interface{}) string {
   return Sprintf("%v %T", x, x)
 }
 
@@ -56,13 +60,13 @@ func maybeString(x interface{}) string {
     default: return ""
   }
 }
-func maybeBool(x interface{})bool {
+func maybeBool(x interface{}) bool {
   switch x := x.(type) {
     case bool: return x
     default: return false
   }
 }
-func maybeInt(x interface{})int {
+func maybeInt(x interface{}) int {
   switch x := x.(type) {
     case int: return x
     default: return 0

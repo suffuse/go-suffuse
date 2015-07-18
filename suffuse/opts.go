@@ -34,9 +34,6 @@ type SfsConfig struct {
   LogLevel LogLevel
   Paths []Path
 }
-type SfsConfigError struct {
-  string
-}
 
 func CreateSfsConfig(argv []string) *SfsConfig {
   trace("argv: %v", argv)
@@ -60,15 +57,15 @@ func optsFromArgs(args []string) *sfsOpts {
   }
 }
 
-func validate(opts *sfsOpts) *SfsConfigError {
-  var err *SfsConfigError
+func validate(opts *sfsOpts) error {
+  var err error
 
   /** If there's a non-empty path argument to these options,
    *  it should already exist or it's an error.
    */
   ensureExists := func (path string, what string) {
     if path != "" && !Path(path).FileExists() {
-      err = opts.newError(Sprintf("%s '%s' does not exist", what, path))
+      err = NewErr(Sprintf("%s '%s' does not exist", what, path))
     }
   }
   ensureExists(opts.Mountpoint, "Mountpoint")
@@ -88,10 +85,11 @@ func configFromOpts(opts *sfsOpts) *SfsConfig {
   }
 
   switch opts.Verbosity {
-    case 0: level = LogWarn
-    case 1: level = LogInfo
-    case 2: level = LogDebug
-    case 3: level = LogTrace
+    case 0 : level = LogWarn
+    case 1 : level = LogInfo
+    case 2 : level = LogDebug
+    case 3 : level = LogTrace
+    default: level = LogTrace
   }
 
   return &SfsConfig {
@@ -102,6 +100,3 @@ func configFromOpts(opts *sfsOpts) *SfsConfig {
     LogLevel   : level,
   }
 }
-
-func (opts *sfsOpts) newError(msg string) *SfsConfigError { return &SfsConfigError{ msg } }
-func (e *SfsConfigError) Error() string { return e.string }

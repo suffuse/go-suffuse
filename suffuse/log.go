@@ -20,5 +20,5 @@ func logAt(level LogLevel, msg string, ctx ...interface{}) {
     sfsLogger.Printf(msg + "\n", ctx...)
   }
 }
-func info(msg string, ctx ...interface{} ) { logAt(LogInfo, msg, ctx...)  }
-func trace(msg string, ctx ...interface{} ) { logAt(LogTrace, msg, ctx...) }
+func info (msg string, ctx ...interface{}) { logAt(LogInfo,  msg, ctx...) }
+func trace(msg string, ctx ...interface{}) { logAt(LogTrace, msg, ctx...) }

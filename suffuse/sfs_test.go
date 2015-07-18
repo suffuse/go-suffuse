@@ -83,5 +83,5 @@ func (x Path) walkCollect(f func(string, os.FileInfo) string) Strings {
       return nil
     },
   )
-  return Strs(res...)
+  return Strings(res)
 }
