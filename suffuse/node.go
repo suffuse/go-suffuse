@@ -2,7 +2,6 @@ package suffuse
 
 import (
   "os"
-  "fmt"
   f "bazil.org/fuse"
 )
 
@@ -19,31 +18,6 @@ func HandleRead(req *f.ReadRequest, resp *f.ReadResponse, data []byte) {
   }
   n := copy(resp.Data[:req.Size], data)
   resp.Data = resp.Data[:n]
-}
-
-func attrString(path Path, a f.Attr) string {
-  format := StripMargin('|', `
-    |%v:%v {
-    |    Inode %v
-    |    Atime %v
-    |    Mtime %v
-    |    Ctime %v
-    |   Crtime %v
-    |   Blocks %v
-    |     Size %v
-    |    Nlink %v
-    |     Rdev %v
-    |  Uid/Gid %v/%v
-    |}
-  `)
-
-  return fmt.Sprintf(format, direntType(path), path, a.Inode, a.Atime, a.Mtime, a.Ctime, a.Crtime, a.Blocks, a.Size, a.Nlink, a.Rdev, a.Uid, a.Gid)
-}
-
-func (x Path) ModePermBits() os.FileMode {
-  fi, err := x.OsStat()
-  if err != nil { return os.FileMode(0) }
-  return fi.Mode() & os.ModePerm
 }
 
 func NewFilePerms(bits uint32) os.FileMode {
