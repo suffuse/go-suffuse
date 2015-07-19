@@ -8,9 +8,9 @@ import (
 type StringMap map[string]string
 type Strings []string
 
-func BytesToStrings(bytes []byte) Strings { return SplitLines(TrimSpace(string(bytes)))             }
-func SplitLines(s string) Strings         { return Strings(strings.Split(s, "\n"))                  }
-func SplitWords(s string) Strings         { return Strings(whitespaceRegex.Split(TrimSpace(s), -1)) }
+func BytesToLines(bytes []byte) Strings { return SplitLines(TrimSpace(string(bytes)))             }
+func SplitLines(s string) Strings       { return Strings(strings.Split(s, "\n"))                  }
+func SplitWords(s string) Strings       { return Strings(whitespaceRegex.Split(TrimSpace(s), -1)) }
 
 func Echoerr(format string, a ...interface{})        { fmt.Fprintf(OsStderr(), format + "\n", a...) }
 func Printf(format string, a ...interface{})         { fmt.Printf(format, a...)                     }
