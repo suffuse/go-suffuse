@@ -9,7 +9,6 @@ import (
 /** Identity node is a wrapper around another Path.
  */
 type IdNode struct {
-  fs.NodeRef
   Path Path
 }
 

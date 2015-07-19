@@ -12,8 +12,9 @@ import (
  *  others, but for now every Inode carries the pointer.
  */
 type Inode struct {
-  *InodeGen
+  inodeGen *InodeGen
   AttrMap
+  Path
 }
 
 func (x *Inode) AttrKeys()[]AttrKey {
@@ -52,21 +53,6 @@ func (x *Inode) AttrOr(key AttrKey, alt AttrValue)(r AttrValue) {
 
 func (x *Inode) Text()string   { return string(x.Bytes())          }
 
-func (x *Inode) AddChildDir(name Name)(*Inode, error) {
-  if x.IsDir() {
-    child := x.NewDir()
-    x.DirList()[name] = child
-    return child, nil
-  }
-  return nil, NotADir()
-}
-func (x *Inode) AddChild(name Name, ino *Inode)error {
-  if x.IsDir() {
-    x.DirList()[name] = ino
-    return nil
-  }
-  return NotADir()
-}
 func (x *Inode) Child(name Name)*Inode {
   if x.IsDir() {
     return x.DirList()[name]
@@ -117,29 +103,35 @@ func (x *Inode) AddNodeMap(nodes map[Path]interface{})error {
   }
   return nil
 }
-func (x *Inode) AddNode(segs []Name, node *Inode)error {
+func (x *Inode) GetOrCreate(segs []Name) (*Inode, error) {
   switch len(segs) {
-    case 0: return NotExist()
-    case 1: return x.AddChild(segs[0], node)
+    case 0: return x, nil
     default:
-      next := x.Child(segs[0])
+      name := segs[0]
+      next := x.Child(name)
       if next == nil {
-        next = x.NewDir()
-        x.AddChild(segs[0], next)
+        var err error
+        next, err = x.NewDir(name)
+        if IsError(err) { return nil, err }
       }
-      return next.AddNode(segs[1:], node)
+      return next.GetOrCreate(segs[1:])
   }
 }
-func (x *Inode) AddPath(path Path, data interface{})error {
+func (x *Inode) AddPath(path Path, data interface{}) error {
+  dir, name := path.Split()
+  parent, err := x.GetOrCreate(dir.Segments())
+  if IsError(err) { return err }
   switch data := data.(type) {
     case Bytes:
-      ino := x.NewFile()
+      ino, err := parent.NewFile(name)
+      if IsError(err) { return err }
       ino.SetAttr(BytesKey, data)
-      return x.AddNode(path.Segments(), ino)
+      return nil
     case LinkTarget:
-      ino := x.NewLink()
+      ino, err := parent.NewLink(name)
+      if IsError(err) { return err }
       ino.SetAttr(LinkTargetKey, data)
-      return x.AddNode(path.Segments(), ino)
+      return nil
     default:
       Echoerr("Failed: %v %T", data, data)
       return NotImplemented()

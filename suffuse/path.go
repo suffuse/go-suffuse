@@ -98,9 +98,9 @@ func (x Path) OsStatAtimeMtime() (atime time.Time, mtime time.Time) {
   return SysAtimeMtime(&stat)
 }
 
-func (x Path) Split() (Path, string) {
+func (x Path) Split() (Path, Name) {
   dir, file := filepath.Split(string(x))
-  return Path(dir), file
+  return Path(dir), Name(file)
 }
 func (x Path) Glob(glob string) []Path {
   ms, err := filepath.Glob(glob)

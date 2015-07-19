@@ -22,7 +22,7 @@ func WithSfsAt(mountPoint Path, f func(*Inode))error {
   conn, err := fuse.Mount(string(mountPoint))
   if err != nil { return err }
 
-  root := NewRoot(fuseRootId)
+  root := NewRoot(fuseRootId, NoPath)
   vfs := &Sfs {
     Mountpoint: mountPoint,
     RootNode: root,

@@ -15,7 +15,7 @@ import (
  */
 func (x *Inode) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
   // TODO: req.Mode, req.Umask
-  return x.AddChildDir(Name(req.Name))
+  return x.NewDir(Name(req.Name))
 }
 func (x *Inode) Mknod(ctx context.Context, req *fuse.MknodRequest) (fs.Node, error) {
   Echoerr("%v.Mknod(*v)", *x, *req)
@@ -27,9 +27,8 @@ func (x *Inode) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.
 
   switch FuseTypeToInodeType(GoModeToDirentType(req.Mode)) {
     case InodeFile:
-      ino := x.NewFile()
-      x.AddChild(Name(req.Name), ino)
-      return ino, ino, nil
+      ino, err := x.NewFile(Name(req.Name))
+      return ino, ino, err
     default:
       return nil, nil, NotSupported()
   }
