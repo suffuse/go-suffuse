@@ -1,6 +1,7 @@
 package suffuse
 
 import (
+  "os"
   "time"
   . "gopkg.in/check.v1"
 )
@@ -85,3 +86,7 @@ func (s *Tsfs) TestPathFileCreation(c *C) {
 // OsOpenFile
 // OsReadLink
 // OsStat
+
+func NewFilePerms(bits uint32) os.FileMode {
+  return os.FileMode(bits) & os.ModePerm
+}

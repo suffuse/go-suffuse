@@ -122,3 +122,33 @@ func (x *FileConversion) FileData(path Path)[]byte {
 func (x *FileConversion) real(p Path) Path {
   return Path(strings.Replace(string(p), "." + x.To, "", 1))
 }
+
+func DirChildren(x Path) []fuse.Dirent {
+  names := x.ReadDirnames()
+  if names == nil { return nil }
+  size := len(names)
+  ds := make([]fuse.Dirent, size + 2)
+
+  ds[0] = fuse.Dirent { Inode: x.Ino(), Type: fuse.DT_Dir, Name: "." }
+  ds[1] = fuse.Dirent { Inode: x.Parent().Ino(), Type: fuse.DT_Dir, Name: ".." }
+
+  for i, name := range names { ds[i+2] = childDirent(x, name) }
+
+  return ds
+}
+
+func direntType(x Path) fuse.DirentType {
+  fi, err := x.OsLstat()
+  if err != nil { return fuse.DT_Unknown }
+  return GoModeToDirentType(fi.Mode())
+}
+
+func childDirent(x Path, name string) fuse.Dirent {
+  child := x.Join(name)
+
+  return fuse.Dirent {
+    Inode: child.Ino(),
+    Type: direntType(child),
+    Name: name,
+  }
+}
