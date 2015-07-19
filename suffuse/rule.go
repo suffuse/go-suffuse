@@ -11,10 +11,10 @@ import (
  *  use the first non-nil return value found for a given Path.
  */
 type Rule interface {
-  MetaData (Path) *fuse.Attr
-  FileData (Path) []byte
-  DirData  (Path) []fuse.Dirent
-  LinkData (Path) *Path
+  MetaData (*Inode) *fuse.Attr
+  FileData (*Inode) []byte
+  DirData  (*Inode) []fuse.Dirent
+  LinkData (*Inode) *LinkTarget
 }
 
 /** Default implementations. A Rule struct can embed BaseRule
@@ -23,14 +23,16 @@ type Rule interface {
  *  returns metadata is a useless filesystem.
  */
 type BaseRule struct { }
-func (*BaseRule) FileData(path Path) []byte        { return nil }
-func (*BaseRule) DirData (path Path) []fuse.Dirent { return nil }
-func (*BaseRule) LinkData(path Path) *Path         { return nil }
+func (*BaseRule) FileData(node *Inode) []byte        { return nil }
+func (*BaseRule) DirData (node *Inode) []fuse.Dirent { return nil }
+func (*BaseRule) LinkData(node *Inode) *LinkTarget   { return nil }
 
 /** Only marker interfaces at the moment. They will carry data
  *  when filesystems become more complex.
  */
-type IdRule  struct { BaseRule }
+type IdRule struct { BaseRule }
+
+type AttrRule struct { BaseRule }
 
 type FileCommand struct {
   BaseRule
@@ -42,16 +44,19 @@ type FileConversion struct {
   From, To, Command, Example string
 }
 
-func (*IdRule) MetaData(path Path) *fuse.Attr {
+func (*IdRule) MetaData(node *Inode) *fuse.Attr {
+  path := node.Path
   fi, err := path.OsLstat()
   if err != nil { return nil }
   attr := GoFileInfoToFuseAttr(fi)
   return &attr
 }
-func (*IdRule) FileData(path Path) []byte {
+func (*IdRule) FileData(node *Inode) []byte {
+  path := node.Path
   return path.SlurpBytes()
 }
-func (*IdRule) DirData(path Path) []fuse.Dirent {
+func (*IdRule) DirData(node *Inode) []fuse.Dirent {
+  path := node.Path
   names := path.ReadDirnames()
   if names == nil { return nil }
   size := len(names)
@@ -64,29 +69,80 @@ func (*IdRule) DirData(path Path) []fuse.Dirent {
 
   return ds
 }
-func (*IdRule) LinkData(path Path) *Path {
+func (*IdRule) LinkData(node *Inode) *LinkTarget {
+  path := node.Path
   target, err := os.Readlink(string(path))
   if err != nil { return nil }
-  res := Path(target)
+  res := LinkTarget(target)
   return &res
 }
 
+func (*AttrRule) MetaData(x *Inode) *fuse.Attr {
+  if x.IsAbsent() { return nil }
 
-func (x *FileCommand) MetaData(path Path)*fuse.Attr {
+  attr := &fuse.Attr {
+    Uid  : uint32(x.Uid()),
+    Gid  : uint32(x.Gid()),
+    Atime: x.Times()[0],
+    Mtime: x.Times()[1],
+    Mode : x.FuseMode(),
+    Nlink: 1,
+  }
+  switch x.InodeType() {
+    case InodeDir  : attr.Nlink = uint32(len(x.DirList()) + 2)
+    case InodeLink : attr.Size = uint64(len(x.LinkTarget()))
+    case InodeFile : attr.Size = uint64(len(x.Bytes()))
+    default        : return nil
+  }
+
+  return attr
+}
+func (*AttrRule) DirData(x *Inode) []fuse.Dirent {
+ if x.IsAbsent() {
+    return nil
+  }
+  if !x.IsDir() {
+    return nil
+  }
+  return x.Dirents()
+}
+func (*AttrRule) FileData(x *Inode) []byte {
+  if x.IsAbsent() {
+    return nil
+  }
+  if x.IsDir() {
+    return nil
+  }
+  return x.Bytes()
+}
+func (*AttrRule) LinkData(x *Inode) *LinkTarget {
+  if x.IsAbsent() {
+    return nil
+  }
+  if x.IsLink() {
+    link := x.LinkTarget()
+    return &link
+  }
+  return nil
+}
+
+func (x *FileCommand) MetaData(node *Inode) *fuse.Attr {
+  path := node.Path
   subpath, cmd := x.split(path)
   if cmd == "" { return nil }
 
   fi, err := subpath.OsStat()
   if err != nil { return nil }
 
-  bytes := x.FileData(path)
+  bytes := x.FileData(node)
   if bytes == nil { return nil }
 
   attr := GoFileInfoToFuseAttr(fi)
   attr.Size = uint64(len(bytes))
   return &attr
 }
-func (x *FileCommand) FileData(path Path)[]byte {
+func (x *FileCommand) FileData(node *Inode) []byte {
+  path := node.Path
   subpath, cmd := x.split(path)
   if cmd == "" { return nil }
 
@@ -107,20 +163,22 @@ func (x *FileCommand) split(p Path) (Path, string) {
   return subpath, ""
 }
 
-func (x *FileConversion) MetaData(path Path)*fuse.Attr {
+func (x *FileConversion) MetaData(node *Inode) *fuse.Attr {
+  path := node.Path
   subpath := x.real(path)
 
   fi, err := subpath.OsStat()
   if err != nil { return nil }
 
-  bytes := x.FileData(path)
+  bytes := x.FileData(node)
   if bytes == nil { return nil }
 
   attr := GoFileInfoToFuseAttr(fi)
   attr.Size = uint64(len(bytes))
   return &attr
 }
-func (x *FileConversion) FileData(path Path)[]byte {
+func (x *FileConversion) FileData(node *Inode)[]byte {
+  path := node.Path
   subpath := x.real(path)
 
   c := strings.Replace(x.Command, "$file", string(subpath), -1)

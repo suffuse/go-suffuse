@@ -20,11 +20,16 @@ func NewRoot(startInode uint64, path Path) *Inode {
   return gen.New(InodeDir, path).WithAttr(DirListKey, DirList{})
 }
 func (x *InodeGen) New(tp InodeType, path Path) *Inode {
-  ino := Inode { inodeGen: x, AttrMap: AttrMap{}, Path: path }
+  ino := &Inode { inodeGen: x, AttrMap: AttrMap{}, Path: path }
   ino.SetAttr(InodeNumKey, <- x.fresh)
   ino.SetAttr(InodeTypeKey, tp)
   ino.SetAttr(PermBitsKey, BasePermBits())
-  return &ino
+  switch tp {
+    case InodeDir : return ino.WithAttr(DirListKey, DirList{})
+    case InodeFile: return ino.WithAttr(BytesKey, []byte{})
+    case InodeLink: return ino.WithAttr(LinkTargetKey, NoLinkTarget)
+    default: return ino
+  }
 }
 
 func (x *Inode) New(tp InodeType, name Name) (*Inode, error) {
@@ -36,17 +41,11 @@ func (x *Inode) New(tp InodeType, name Name) (*Inode, error) {
   return nil, NotADir()
 }
 func (x *Inode) NewDir(name Name) (*Inode, error) {
-  dir, err := x.New(InodeDir, name)
-  if IsError(err) { return nil, err }
-  return dir.WithAttr(DirListKey, DirList{}), nil
+  return x.New(InodeDir, name)
 }
 func (x *Inode) NewFile(name Name) (*Inode, error) {
-  file, err := x.New(InodeFile, name)
-  if IsError(err) { return nil, err }
-  return file.WithAttr(BytesKey, []byte{}), nil
+  return x.New(InodeFile, name)
 }
 func (x *Inode) NewLink(name Name) (*Inode, error) {
-  link, err := x.New(InodeLink, name)
-  if IsError(err) { return nil, err }
-  return link.WithAttr(LinkTargetKey, NoLinkTarget), nil
+  return x.New(InodeLink, name)
 }

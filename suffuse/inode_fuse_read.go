@@ -18,28 +18,29 @@ import (
  *    Read, Readdir
  */
 func (x *Inode) Attr(ctx context.Context, attrRef *fuse.Attr) error {
-  if x.IsAbsent() { return NotExist() }
 
-  attr := fuse.Attr {
-    Uid  : uint32(x.Uid()),
-    Gid  : uint32(x.Gid()),
-    Atime: x.Times()[0],
-    Mtime: x.Times()[1],
-    Mode : x.FuseMode(),
-    Nlink: 1,
-  }
-  switch x.InodeType() {
-    case InodeDir  : attr.Nlink = uint32(len(x.DirList()) + 2)
-    case InodeLink : attr.Size = uint64(len(x.LinkTarget()))
-    case InodeFile : attr.Size = uint64(len(x.Bytes()))
-    default        : return NotExist()
+  trace("[%v] Attr", x)
+
+  for _, rule := range rules {
+    a := rule.MetaData(x)
+    if a != nil {
+      *attrRef = *a
+      return nil
+    }
   }
 
-  *attrRef = attr
-  return nil
+  return NotExist()
 }
 
 func (x *Inode) Lookup(ctx context.Context, name string) (fs.Node, error) {
+  trace("[%v] Lookup(%v)", x.Path, name)
+
+  // TODO: move the next four lines to a separate function, maybe something like: GetRealNode
+  fi, err := x.Path.Join(name).OsLstat()
+  if IsNilError(err) {
+    return x.New(FileModeToInodeType(fi.Mode()), Name(name))
+  }
+
   if !x.IsDir() {
     return nil, NotADir()
   }
@@ -47,29 +48,38 @@ func (x *Inode) Lookup(ctx context.Context, name string) (fs.Node, error) {
   if child != nil {
     return child, nil
   }
-  return nil, NotExist()
+
+  return x.New(InodeNone, Name(name))
 }
 
 func (x *Inode) ReadAll(ctx context.Context) ([]byte, error) {
-  if x.IsDir() {
-    return nil, IsADir()
+  trace("[%v] ReadAll", x)
+
+  for _, rule := range rules {
+    bytes := rule.FileData(x)
+    if bytes != nil {
+      return bytes, nil
+    }
   }
-  return x.Bytes(), nil
+  return nil, NotExist()
 }
 
 func (x *Inode) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-  if x.IsAbsent() {
-    return nil, NotExist()
+  trace("[%v] ReadDirAll", x)
+
+  for _, rule := range rules {
+    children := rule.DirData(x)
+    if children != nil { return children, nil }
   }
-  if !x.IsDir() {
-    return nil, NotADir()
-  }
-  return x.Dirents(), nil
+  return nil, NotADir()
 }
 
 func (x *Inode) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (string, error) {
-  if x.IsLink() {
-    return string(x.LinkTarget()), nil
+  trace("[%v] Readlink", x)
+
+  for _, rule := range rules {
+    target := rule.LinkData(x)
+    if target != nil { return string(*target), nil }
   }
   return "", NotValidArg()
 }

@@ -63,7 +63,7 @@ func (x InodeType) ToFileMode() os.FileMode {
     default          : return os.FileMode(0)
   }
 }
-func FuseTypeToInodeType(tp fuse.DirentType)InodeType {
+func FuseTypeToInodeType(tp fuse.DirentType) InodeType {
   switch tp {
     case fuse.DT_Socket : return InodeSocket
     case fuse.DT_Link   : return InodeLink
@@ -76,3 +76,6 @@ func FuseTypeToInodeType(tp fuse.DirentType)InodeType {
   }
 }
 
+func FileModeToInodeType(tp os.FileMode) InodeType {
+  return FuseTypeToInodeType(GoModeToDirentType(tp))
+}

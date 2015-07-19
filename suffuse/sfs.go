@@ -76,7 +76,7 @@ func NewSfs(conf *SfsConfig) (*Sfs, error) {
 
   mfs := &Sfs {
     Mountpoint : mnt,
-    RootNode   : NewIdNode(conf.Paths[0]),
+    RootNode   : NewRoot(fuseRootId, conf.Paths[0]),
     Connection : c,
   }
 
