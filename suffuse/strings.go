@@ -3,6 +3,7 @@ package suffuse
 import (
   "fmt"
   "strings"
+  "sort"
 )
 
 type StringMap map[string]string
@@ -29,13 +30,20 @@ func (x Strings) TrimAll() Strings {
   return x.Map(func(s string)string { return TrimSpace(s) })
 }
 
+func (x Strings) SortedStrings() []string {
+  dst := make([]string, x.Len())
+  copy(dst, x.Array())
+  sort.Strings(dst)
+  return dst
+}
+
 func (x Strings) Map(f func(string)string) Strings {
   res := make([]string, x.Len())
   for i, x := range x.Array() { res[i] = f(x) }
   return Strings(res)
 }
 func (x Strings) FlatMap(f func(string)[]string) Strings {
-  res := make([]string, 0)
+  var res []string
   for _, x := range x.Array() { res = append(res, f(x)...) }
   return Strings(res)
 }
@@ -53,9 +61,8 @@ func StripMargin(marginChar rune, s string) string {
     index   := strings.IndexRune(trimmed, marginChar)
     if index > -1 {
       return trimmed[index + 1:]
-    } else {
-      return line
     }
+    return line
   }
   return SplitLines(TrimSpace(s)).Map(perLine).String()
 }

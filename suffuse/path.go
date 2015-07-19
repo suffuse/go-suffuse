@@ -57,7 +57,7 @@ func (x Path) newPathOrSelf(newPath string, err error) Path {
 
 func (x Path) Segments() []Name {
   segs := strings.Split(string(x), "/")
-  buf := make([]Name, 0)
+  var buf []Name
   for _, seg := range segs {
     if len(seg) > 0 {
       buf = append(buf, Name(seg))

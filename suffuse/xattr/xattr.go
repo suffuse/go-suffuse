@@ -63,8 +63,8 @@ func Remove(path string, key string) error {
 // The extended attribute names are simple NULL-terminated
 // UTF-8 strings and are returned in arbitrary order.
 func ListToStrings(buf []byte) []string {
-  buflen := len(buf)
   var res []string
+  buflen := len(buf)
   idx := 0
 
   for idx < buflen {
