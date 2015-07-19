@@ -47,7 +47,7 @@ func (s *Tsfs) TestPathSymlinkLogic(c *C) {
   link2.OsSymlink(Path("a/b/c"))
 
   // Create a/b/c, resolve all links, and chdir into it.
-  d.OsMkdirAll(NewFilePerms(0755))
+  d.OsMkdirAll(os.FileMode(BasePermBits()))
   d = d.EvalSymlinks()
   d.OsChdir()
 
@@ -86,7 +86,3 @@ func (s *Tsfs) TestPathFileCreation(c *C) {
 // OsOpenFile
 // OsReadLink
 // OsStat
-
-func NewFilePerms(bits uint32) os.FileMode {
-  return os.FileMode(bits) & os.ModePerm
-}

@@ -75,7 +75,7 @@ func (x *IdNode) Read(ctx context.Context, req *f.ReadRequest, resp *f.ReadRespo
   for _, rule := range rules {
     bytes := rule.FileData(path)
     if bytes != nil {
-      HandleRead(req, resp, bytes)
+      handleRead(req, resp, bytes)
       return nil
     }
   }
@@ -96,7 +96,7 @@ func (x *IdNode) ReadAll(ctx context.Context) ([]byte, error) {
 
 // HandleRead handles a read request assuming that data is the entire file content.
 // It adjusts the amount returned in resp according to req.Offset and req.Size.
-func HandleRead(req *f.ReadRequest, resp *f.ReadResponse, data []byte) {
+func handleRead(req *f.ReadRequest, resp *f.ReadResponse, data []byte) {
   if req.Offset >= int64(len(data)) {
     data = nil
   } else {

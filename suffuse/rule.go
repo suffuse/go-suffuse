@@ -52,7 +52,17 @@ func (*IdRule) FileData(path Path) []byte {
   return path.SlurpBytes()
 }
 func (*IdRule) DirData(path Path) []fuse.Dirent {
-  return DirChildren(path)
+  names := path.ReadDirnames()
+  if names == nil { return nil }
+  size := len(names)
+  ds := make([]fuse.Dirent, size + 2)
+
+  ds[0] = fuse.Dirent { Name: ".",  Inode: path.Ino(),          Type: fuse.DT_Dir }
+  ds[1] = fuse.Dirent { Name: "..", Inode: path.Parent().Ino(), Type: fuse.DT_Dir }
+
+  for i, name := range names { ds[i+2] = childDirent(path, name) }
+
+  return ds
 }
 func (*IdRule) LinkData(path Path) *Path {
   target, err := os.Readlink(string(path))
@@ -123,26 +133,6 @@ func (x *FileConversion) real(p Path) Path {
   return Path(strings.Replace(string(p), "." + x.To, "", 1))
 }
 
-func DirChildren(x Path) []fuse.Dirent {
-  names := x.ReadDirnames()
-  if names == nil { return nil }
-  size := len(names)
-  ds := make([]fuse.Dirent, size + 2)
-
-  ds[0] = fuse.Dirent { Inode: x.Ino(), Type: fuse.DT_Dir, Name: "." }
-  ds[1] = fuse.Dirent { Inode: x.Parent().Ino(), Type: fuse.DT_Dir, Name: ".." }
-
-  for i, name := range names { ds[i+2] = childDirent(x, name) }
-
-  return ds
-}
-
-func direntType(x Path) fuse.DirentType {
-  fi, err := x.OsLstat()
-  if err != nil { return fuse.DT_Unknown }
-  return GoModeToDirentType(fi.Mode())
-}
-
 func childDirent(x Path, name string) fuse.Dirent {
   child := x.Join(name)
 
@@ -151,4 +141,10 @@ func childDirent(x Path, name string) fuse.Dirent {
     Type: direntType(child),
     Name: name,
   }
+}
+
+func direntType(x Path) fuse.DirentType {
+  fi, err := x.OsLstat()
+  if err != nil { return fuse.DT_Unknown }
+  return GoModeToDirentType(fi.Mode())
 }
