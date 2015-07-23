@@ -17,8 +17,9 @@ dependencies:
     - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse/go-suffuse:
         pwd: $HOME
     - go get github.com/suffuse/go-suffuse/cmd/fileinfo
-    - fileinfo
     - echo $PATH
+    - ls -al $GOPATH/bin
+    - fileinfo
     - go get -t -v ./...:
         pwd: ../.go_project/src/github.com/suffuse/go-suffuse
 
