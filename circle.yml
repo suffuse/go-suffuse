@@ -8,7 +8,7 @@ machine:
     # This is where the go project is actually checked out to:
     CIRCLE_BUILD_DIR: $HOME/.go_project/src/github.com/suffuse/go-suffuse
     GOPATH: $HOME/.go_project
-    PATH=$PATH:$GOROOT/bin
+    PATH: $PATH:$GOROOT/bin
 
 dependencies:
   pre:
