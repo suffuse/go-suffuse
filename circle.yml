@@ -14,13 +14,12 @@ dependencies:
   pre:
     - brew upgrade go
     - mkdir -p $HOME/.go_project/src/github.com/suffuse
-    - cd $HOME
-    - pwd
-    - ls -al
-    - mv go-suffuse/ $HOME/.go_project/src/github.com/suffuse
-    - cd $HOME/.go_project/src/github.com/suffuse/go-suffuse
-    - go get -t -v ./...
+    - mv go-suffuse/ $HOME/.go_project/src/github.com/suffuse:
+        pwd: $HOME
+    - go get -t -v ./...:
+        pwd: $HOME/.go_project/src/github.com/suffuse/go-suffuse
 
 test:
   override:
-    - go test -v ./...
+    - go test -v ./...:
+        pwd: $HOME/.go_project/src/github.com/suffuse/go-suffuse
