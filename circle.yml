@@ -8,13 +8,17 @@ machine:
     # This is where the go project is actually checked out to:
     CIRCLE_BUILD_DIR: $HOME/.go_project/src/github.com/suffuse/go-suffuse
     GOPATH: $HOME/.go_project
+    PATH=$PATH:$GOROOT/bin
 
 dependencies:
   pre:
     - brew upgrade go
-    - pwd
-    - go get -t github.com/suffuse/go-suffuse/cmd/suffuse
+    - mkdir -p $HOME/.go_project/src/github.com/suffuse
+    - cd $HOME
+    - mv go-suffuse/ $HOME/.go_project/src/github.com/suffuse
+    - cd $HOME/.go_project/src/github.com/suffuse/go-suffuse
+    - go get -t -v ./...
 
 test:
   override:
-    - go test ./...
+    - go test -v ./...
