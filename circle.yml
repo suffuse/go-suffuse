@@ -11,6 +11,7 @@ machine:
 dependencies:
   pre:
     - brew upgrade go
+    - go get -t ./...
 
 test:
   override:
