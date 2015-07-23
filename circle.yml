@@ -14,6 +14,8 @@ dependencies:
     - mkdir -p ~/.go_project/src/github.com/suffuse
     - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse:
         pwd: $HOME
+    - ls -al ~/.go_project/src/github.com/suffuse
+    - ls -al ~/.go_project/src/github.com/suffuse/go-suffuse
     - go get -t -v ./...:
         pwd: ../.go_project/src/github.com/suffuse/go-suffuse
 
