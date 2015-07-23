@@ -10,12 +10,10 @@ machine:
 
 dependencies:
   pre:
-    - brew upgrade go
+    - brew install osxfuse go
     - mkdir -p ~/.go_project/src/github.com/suffuse/go-suffuse
     - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse/go-suffuse:
         pwd: $HOME
-    - ls -al ~/.go_project/src/github.com/suffuse
-    - ls -al ~/.go_project/src/github.com/suffuse/go-suffuse
     - go get -t -v ./...:
         pwd: ../.go_project/src/github.com/suffuse/go-suffuse
 
