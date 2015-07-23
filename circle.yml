@@ -1,13 +1,13 @@
 ## OS X build (CircleCI iOS beta)
 
 # Pretend like it's an Xcode project, at least to get it running.
-# test
 machine:
   environment:
     XCODE_WORKSPACE: NotUsed.xcworkspace
     XCODE_SCHEME: NotUsed
     # This is where the go project is actually checked out to:
     CIRCLE_BUILD_DIR: $HOME/.go_project/src/github.com/suffuse/go-suffuse
+    GOPATH: $HOME/.go_project
 
 dependencies:
   pre:
