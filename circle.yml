@@ -13,7 +13,7 @@ dependencies:
     - brew upgrade go
     - mkdir -p ~/.go_project/src/github.com/suffuse
     - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse:
-        pwd: ~
+        pwd: $HOME
     - go get -t -v ./...:
         pwd: ~/.go_project/src/github.com/suffuse/go-suffuse
 
