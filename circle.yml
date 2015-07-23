@@ -14,7 +14,8 @@ dependencies:
   pre:
     - brew upgrade go
     - mkdir -p $HOME/.go_project/src/github.com/suffuse
-    - mv go-suffuse/ $HOME/.go_project/src/github.com/suffuse:
+    - echo $HOME
+    - cp go-suffuse/ $HOME/.go_project/src/github.com/suffuse:
         pwd: $HOME
     - go get -t -v ./...:
         pwd: $HOME/.go_project/src/github.com/suffuse/go-suffuse
