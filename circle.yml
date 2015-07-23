@@ -10,6 +10,7 @@ machine:
 
 dependencies:
   pre:
+    - echo $GOPATH
     - brew upgrade go
     - brew install Caskroom/cask/osxfuse
     - mkdir -p ~/.go_project/src/github.com/suffuse/go-suffuse
