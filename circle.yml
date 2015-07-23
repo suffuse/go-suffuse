@@ -15,7 +15,7 @@ dependencies:
     - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse:
         pwd: $HOME
     - go get -t -v ./...:
-        pwd: ~/.go_project/src/github.com/suffuse/go-suffuse
+        pwd: $HOME/.go_project/src/github.com/suffuse/go-suffuse
 
 test:
   override:
