@@ -9,7 +9,7 @@ import (
 func (s *Tsfs) TestStrings(c *C) {
   text := "foo\nbar\n"
   s1 := Exec("echo", strings.TrimSpace(text))
-  c.Assert(s1.Strings(), DeepEquals, Strings{"foo", "bar"})
+  c.Assert(s1.Lines(), DeepEquals, Strings{"foo", "bar"})
   c.Assert(s1.Slurp(), Equals, text)
 }
 
