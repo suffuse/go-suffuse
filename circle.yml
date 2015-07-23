@@ -5,22 +5,19 @@ machine:
   environment:
     XCODE_WORKSPACE: NotUsed.xcworkspace
     XCODE_SCHEME: NotUsed
-    # This is where the go project is actually checked out to:
-    CIRCLE_BUILD_DIR: $HOME/.go_project/src/github.com/suffuse/go-suffuse
-    GOPATH: $HOME/.go_project
+    GOPATH: ~/.go_project
     PATH: $PATH:$GOROOT/bin
 
 dependencies:
   pre:
     - brew upgrade go
-    - mkdir -p $HOME/.go_project/src/github.com/suffuse
-    - echo $HOME
+    - mkdir -p ~/.go_project/src/github.com/suffuse
     - cp -R go-suffuse/ $HOME/.go_project/src/github.com/suffuse:
-        pwd: $HOME
+        pwd: ~
     - go get -t -v ./...:
-        pwd: $HOME/.go_project/src/github.com/suffuse/go-suffuse
+        pwd: ~/.go_project/src/github.com/suffuse/go-suffuse
 
 test:
   override:
     - go test -v ./...:
-        pwd: $HOME/.go_project/src/github.com/suffuse/go-suffuse
+        pwd: ~/.go_project/src/github.com/suffuse/go-suffuse
