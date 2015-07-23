@@ -1,9 +1,9 @@
 package suffuse
 
 import (
-  "golang.org/x/net/context"
   "bazil.org/fuse/fs"
   "bazil.org/fuse"
+  "os"
 )
 
 /** Sfs == Suffuse File System.
@@ -25,24 +25,51 @@ type Sfs struct {
 // call fs.Serve to serve the FUSE protocol using an implementation of
 // the service methods in the interfaces FS* (file system), Node* (file
 // or directory), and Handle* (opened file or directory).
+
+func NewSfs(conf *SfsConfig) (*Sfs, error) {
+  sfsLogLevel = conf.LogLevel
+         mnt := conf.Mountpoint
+  mount_opts := getFuseMountOptions(conf)
+
+  if !conf.Config.IsEmpty() {
+    configFileOpts := readJsonFile(conf.Config)
+    Echoerr("%v", configFileOpts)
+  }
+
+  c, err := fuse.Mount(string(mnt), mount_opts...)
+  if err != nil { return nil, err }
+
+  mfs := &Sfs {
+    Mountpoint : mnt,
+    RootNode   : NewIdNode(conf.Paths[0]),
+    Connection : c,
+  }
+
+  /** Start a goroutine which looks for INT/TERM and
+   *  calls unmount on the filesystem. Otherwise ctrl-C
+   *  leaves us with ghost mounts which outlive the process.
+   */
+  trap := func (sig os.Signal) {
+    Echoerr("Caught %s - forcing unmount(2) of %s\n", sig, mfs.Mountpoint)
+    mfs.Unmount()
+  }
+  TrapExit(trap)
+  return mfs, nil
+}
+
+func getFuseMountOptions(conf *SfsConfig) []fuse.MountOption {
+  mount_opts := []fuse.MountOption { fuse.FSName("suffuse") }
+  mount_opts = append(mount_opts, PlatformOptions()...)
+  if conf.VolName != "" {
+    mount_opts = append(mount_opts,
+      fuse.LocalVolume(),
+      fuse.VolumeName(conf.VolName),
+    )
+  }
+  return mount_opts
+}
+
 func (u *Sfs) Root() (fs.Node, error) { return u.RootNode, nil }
-
-func (u *Sfs) Init(ctx context.Context, req *fuse.InitRequest, resp *fuse.InitResponse) error {
-  logI("Init", "req", req)
-  return nil
-}
-
-func (u *Sfs) Destroy(ctx context.Context) {
-  logI("Destroy")
-}
-
-func (u *Sfs) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
-  logD("Statfs")
-  stat, err := RootPath.SysStatfs()
-  if err != nil { return err }
-  *resp = SysStatfsToFuseStatfs(stat)
-  return nil
-}
 
 func (u *Sfs) Unmount() error {
   return u.Mountpoint.SysUnmount()

@@ -12,12 +12,13 @@ import (
 )
 
 const (
-  ENOTDIR         = fuse.Errno(sys.ENOTDIR) // not a directory
-  EINVAL          = fuse.Errno(sys.EINVAL)  // invalid argument
-  MAXNAMELEN      = 255
-  MNT_FORCE       = 0x1
-  OsModeAnyDevice = os.ModeDevice | os.ModeCharDevice
+  maxNameLen      = 255
+  mntForce        = 0x1
+  osModeAnyDevice = os.ModeDevice | os.ModeCharDevice
 )
+
+func NotADir()error        { return fuse.Errno(sys.ENOTDIR) } // not a directory
+func NotValidArg()error    { return fuse.Errno(sys.EINVAL)  } // invalid argument
 
 /** Install a signal handler for INT/TERM.
  */
@@ -33,17 +34,17 @@ func TrapExit (handler func(os.Signal)) {
 
 func (x Path) SysStatFile() (sys.Stat_t, error) {
   s := sys.Stat_t { }
-  err := sys.Stat(x.Path, &s)
+  err := sys.Stat(string(x), &s)
   return s, err
 }
 func (x Path) SysStatLink() (sys.Stat_t, error) {
   s := sys.Stat_t { }
-  err := sys.Lstat(x.Path, &s)
+  err := sys.Lstat(string(x), &s)
   return s, err
 }
 func (x Path) SysStatfs() (sys.Statfs_t, error) {
   s := sys.Statfs_t { }
-  err := sys.Statfs(x.Path, &s)
+  err := sys.Statfs(string(x), &s)
   return s, err
 }
 
@@ -83,7 +84,7 @@ func SysStatfsToFuseStatfs(s sys.Statfs_t) fuse.StatfsResponse {
     Ffree   : s.Ffree,
     // Bsize   : s.Bsize, // Ignored by osxfuse, uses mount option iosize
     // Frsize  : s.Bsize, // Ignored, but see http://fuse.996288.n3.nabble.com/statvfs-vs-statfs-td8636.html
-    Namelen : MAXNAMELEN,
+    Namelen : maxNameLen,
   }
 }
 
@@ -136,7 +137,7 @@ func GoModeToDirentType(mode os.FileMode) fuse.DirentType {
     case bits & os.ModeSymlink   == os.ModeSymlink   : return fuse.DT_Link
     case bits & os.ModeSocket    == os.ModeSocket    : return fuse.DT_Socket
     case bits & os.ModeNamedPipe == os.ModeNamedPipe : return fuse.DT_FIFO
-    case bits & OsModeAnyDevice  == OsModeAnyDevice  : return fuse.DT_Char
+    case bits & osModeAnyDevice  == osModeAnyDevice  : return fuse.DT_Char
     case bits & os.ModeDevice    == os.ModeDevice    : return fuse.DT_Block
 
     default:  return fuse.DT_Unknown

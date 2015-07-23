@@ -15,7 +15,7 @@ func SetSysAttributes(sp *sys.Stat_t, a *fuse.Attr) {
 }
 
 func (x Path) SysUnmount() error {
-  return fuse.Unmount(x.Path)
+  return fuse.Unmount(string(x))
 }
 
 func SysAtimeMtime(sp *sys.Stat_t) (atime time.Time, mtime time.Time) {

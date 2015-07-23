@@ -1,87 +1,102 @@
 package suffuse
 
 import (
-  "flag"
-  "os"
-  "bazil.org/fuse"
+  "github.com/docopt/docopt-go"
 )
 
-type SfsOpts struct {
-  Config, Mountpoint, ExcludeRegex, VolName string
-  Scratch, Verbose, Debug bool
-  Args []string
+func sfsUsage()string {
+  return TrimSpace(`
+Usage: suffuse [-v | -vv | -vvv] [-t | -m PATH] [-n VOLNAME] [-c PATH] PATH
+
+Arguments:
+  PATH  existing filesystem
+
+Options:
+  -c PATH     suffuse config file
+  -m PATH     mount point
+  -n VOLNAME  volume name (OS X only)
+  -t          create scratch directory as mount point
+  -v          more verbose logging (also -vv and -vvv)
+  `)
 }
 
-func UsageAndExit() {
-  flag.Usage()
-  os.Exit(2)
+type sfsOpts struct {
+  Config, Mountpoint, VolName string
+  Scratch bool
+  Verbosity int
+  Dir string
 }
 
-func (opts SfsOpts) Create() (Sfs, error) {
-  SetLogLevel(opts.GetLogLevel())
-         mnt := opts.GetMountpoint()
-  mount_opts := []fuse.MountOption { fuse.FSName("suffuse") }
+type SfsConfig struct {
+  VolName string
+  Config Path
+  Mountpoint Path
+  LogLevel LogLevel
+  Paths []Path
+}
 
-  mount_opts = append(mount_opts, PlatformOptions()...)
-  if opts.VolName != "" {
-    mount_opts = append(mount_opts,
-      fuse.LocalVolume(),
-      fuse.VolumeName(opts.VolName),
-    )
+func CreateSfsConfig(argv []string) *SfsConfig {
+  trace("argv: %v", argv)
+  opts := optsFromArgs(argv[1:])
+  MaybeFatal(validate(opts))
+  return configFromOpts(opts)
+}
+
+func optsFromArgs(args []string) *sfsOpts {
+  argMap, err := docopt.Parse(sfsUsage(), args, /*help*/true, /*version*/"HEAD", /*optionsFirst*/false, /*exit*/false)
+  MaybeLog(err)
+  trace("argMap: %+v", argMap)
+
+  return &sfsOpts {
+    Config: maybeString(argMap["-c"]),
+    Mountpoint: maybeString(argMap["-m"]),
+    VolName: maybeString(argMap["-n"]),
+    Scratch: maybeBool(argMap["-t"]),
+    Verbosity: maybeInt(argMap["-v"]),
+    Dir: maybeString(argMap["PATH"]),
   }
-  if opts.Config != "" {
-    configFileOpts := ReadJsonFile(NewPath(opts.Config))
-    Echoerr("%v", configFileOpts)
-  }
+}
 
-  c, err := fuse.Mount(mnt.Path, mount_opts...)
-  if err != nil { return Sfs{}, err }
+func validate(opts *sfsOpts) error {
+  var err error
 
-  // Exactly one incoming path for the moment.
-  // Eventually more than one could mean a union mount.
-  if len(opts.Args) != 1 { UsageAndExit() }
-
-  mfs := Sfs {
-    Mountpoint : mnt,
-    RootNode   : NewIdNode(NewPath(opts.Args[0])),
-    Connection : c,
-  }
-
-  /** Start a goroutine which looks for INT/TERM and
-   *  calls unmount on the filesystem. Otherwise ctrl-C
-   *  leaves us with ghost mounts which outlive the process.
+  /** If there's a non-empty path argument to these options,
+   *  it should already exist or it's an error.
    */
-  trap := func (sig os.Signal) {
-    Echoerr("Caught %s - forcing unmount(2) of %s\n", sig, mfs.Mountpoint)
-    mfs.Unmount()
+  ensureExists := func (path string, what string) {
+    if path != "" && !Path(path).FileExists() {
+      err = NewErr(Sprintf("%s '%s' does not exist", what, path))
+    }
   }
-  TrapExit(trap)
-  return mfs, nil
+  ensureExists(opts.Mountpoint, "Mountpoint")
+  ensureExists(opts.Dir, "Directory")
+  ensureExists(opts.Config, "Config file")
+  return err
 }
 
-func (opts SfsOpts) GetMountpoint() Path {
-  switch {
-    case opts.Scratch          : return ScratchDir()
-    case opts.Mountpoint != "" : return NewPath(opts.Mountpoint)
-    default                    : UsageAndExit() ; return Path{}
-  }
-}
+func configFromOpts(opts *sfsOpts) *SfsConfig {
+  var mountPoint Path
+  var level LogLevel
 
-func ParseSfsOpts() SfsOpts {
-  opts := SfsOpts{}
-
-  // flag.StringVar(&opts.Config, "c", "", "suffuse config file")
-  // flag.StringVar(&opts.ExcludeRegex, "x", "", "name exclusion regex")
-  flag.StringVar(&opts.Mountpoint, "m", "", "mount point")
-  flag.StringVar(&opts.VolName, "n", "", "volume name (OSX only)")
-  flag.BoolVar(&opts.Scratch, "t", false, "create scratch directory as mount point")
-  flag.BoolVar(&opts.Verbose, "v", false, "log at INFO level")
-  flag.BoolVar(&opts.Debug, "d", false, "log at DEBUG level")
-  flag.Usage = func () {
-    Echoerr("Usage: %s <options> [path path ...]\n", os.Args[0])
-    flag.PrintDefaults()
+  if opts.Scratch {
+    mountPoint = ScratchDir()
+  } else {
+    mountPoint = Path(opts.Mountpoint)
   }
-  flag.Parse()
-  opts.Args = flag.Args()
-  return opts
+
+  switch opts.Verbosity {
+    case 0 : level = LogWarn
+    case 1 : level = LogInfo
+    case 2 : level = LogDebug
+    case 3 : level = LogTrace
+    default: level = LogTrace
+  }
+
+  return &SfsConfig {
+    VolName    : opts.VolName,
+    Config     : Path(opts.Config),
+    Mountpoint : mountPoint,
+    Paths      : Paths(opts.Dir),
+    LogLevel   : level,
+  }
 }

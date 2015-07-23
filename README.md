@@ -3,34 +3,29 @@ Suffuse client
 
 A raw snapshot of generic file virtualization in progress. Written in go.
 
+|OS    |Status|
+|------|------|
+|Linux |[![Build Status](https://travis-ci.org/suffuse/go-suffuse.svg?branch=master)](https://travis-ci.org/suffuse/go-suffuse)|
+
+
 Prerequisites
 =============
 
-[Go](https://golang.org/)
+- [FUSE](http://sourceforge.net/p/fuse/wiki/OperatingSystems/)
+- [Go](https://golang.org/dl/) 1.4.x
+- GOPATH [correctly configured](https://github.com/golang/go/wiki/GOPATH)
 
-**OSX**
+**OS X**
 ```
-brew install go
+brew install osxfuse go
 ```
 
 **Linux**
 
-Get and extract the correct version (at least version `1.4.2`) from [The Go Download page](https://golang.org/dl/)
-
+[Install Go](https://golang.org/doc/install#tarball) directly to obtain the current release.
 ```
-# Make sure to export GOROOT to the correct path
-export GOROOT="$HOME/opt/go1.4.2"
-```
-
---------------------
-
-[GOPATH environment variable](https://github.com/golang/go/wiki/GOPATH) needs to be correctly set.
-
-An example setup of the paths:
-
-```
-export GOPATH="$HOME/workspaces/go"
-export PATH="$GOPATH/bin":$PATH
+# FUSE installation on ubuntu, other distributions will be similar
+sudo apt-get install fuse
 ```
 
 Installation
@@ -39,7 +34,7 @@ Installation
 **When you see ... it means literally three dots.** It's the go syntax for "all projects under this directory."
 
 ```
-go get github.com/suffuse/go-suffuse/cmd/suffuse
+go get -t github.com/suffuse/go-suffuse/cmd/suffuse
 ```
 
 Suffuse has been installed in `$GOPATH/bin`.
@@ -101,20 +96,20 @@ _Start playing_
 % wc -l ~/mnt/seq.txt
 10 /home/user/mnt/seq.txt
 
-# Via suffuse, a derived file ending with #4,6p is a sed 
+# Via suffuse, a derived file ending with #4,6p is a sed
 # command executed on the actual file.
-% cat /mnt/seq.txt#4,6p
+% cat ~/mnt/seq.txt#4,6p
 4
 5
 6
 
 # Arbitrary sed commands, different sized files.
-% ls -l /mnt/seq.txt#5,10p
--rw-r--r--  1 user  user  13 Jun 30 11:57 /mnt/seq.txt#5,10p
+% ls -l ~/mnt/seq.txt#5,10p
+-rw-r--r--  1 user  user  13 Jun 30 11:57 /home/user/mnt/seq.txt#5,10p
 
 # These files are effectively indistinguishable from "real" files.
-% ls -l /mnt/seq.txt#1,3p
--rw-r--r--  1 user  user  6 Jun 30 11:57 /mnt/seq.txt#1,3p
+% ls -l ~/mnt/seq.txt#1,3p
+-rw-r--r--  1 user  user  6 Jun 30 11:57 /home/user/mnt/seq.txt#1,3p
 ```
 
 _Kill the suffuse instance_
@@ -130,8 +125,6 @@ Make sure that:
 - the `$GOROOT/bin` directory is on your `$PATH`
 
 ```
-# Install dependencies
-go get gopkg.in/check.v1
 # Continuous testing
 bin/cc.sh
 # Docker container works somewhat

@@ -1,11 +1,12 @@
 package suffuse
 
 import (
-  "os"
+  "fmt"
   "testing"
-  "strings"
   "runtime"
   . "gopkg.in/check.v1"
+  "math/rand"
+  "time"
 )
 
 var _ = Suite(&Tsfs{})
@@ -20,38 +21,34 @@ type Tsfs struct { In Path ; Out Path }
  *  In particular the "total NN" line differs. The details are
  *  not especially interesting. We just filter out the tottal line.
  */
-var totalRegex = NewRegex(`total \d+`)
+var totalRegex = Regexp(`total \d+`)
 
-func make_test_fs(os string) string {
+func makeTestFs(os string) string {
   xattrPart := ""
 
   if os == "darwin" {
-    xattrPart = "\n" + strings.TrimSpace(`
+    xattrPart = "\n" + TrimSpace(`
       xattr    -w suffuse.type link file.txt
       xattr -s -w suffuse.type link flink.txt
     `)
   }
-  pre := strings.TrimSpace(`
+  pre := TrimSpace(`
 echo "hello world" > file.txt
 ln -s file.txt flink.txt
   `)
-  post := strings.TrimSpace(`
+  post := TrimSpace(`
 mkdir dir
 echo "hello dir" > dir/sub.txt
 ln -s dir dlink
 seq 1 10000 > bigfile.txt
   `)
 
-  return NewLines(pre, xattrPart, post).String()
+  return Strings{pre, xattrPart, post}.String()
 }
 
 func startFuse(args ...string) {
-  saved := os.Args
-  os.Args = args
-  opts := ParseSfsOpts()
-  os.Args = saved
-
-  mfs, err := opts.Create()
+  conf := CreateSfsConfig(args)
+  mfs, err := NewSfs(conf)
   MaybePanic(err)
 
   go func() {
@@ -76,26 +73,51 @@ func AssertExecSuccess(c *C, args ...string) {
 func AssertSameFile(c *C, p1, p2 Path) {
   c.Assert(p1.EvalSymlinks(), Equals, p2.EvalSymlinks())
 }
+// "found fmt.Stringer" means you can't pass a string. Oyve.
+func AssertString(c *C, found interface{}, expected string) {
+  var str string
+  switch found := found.(type) {
+    case fmt.Stringer : str = found.String()
+    case string       : str = found
+    default           : panic(Sprintf("Unexpected type %T", found))
+  }
+  c.Assert(str, Equals, expected)
+}
 
 func (s *Tsfs) SetUpSuite(c *C) {
-  logI("SetUpSuite(%s)\n", *s)
+  info("SetUpSuite(%s)\n", *s)
+  psutilHostDump()
 
-  PsutilHostDump()
-  // fmt.Println(GetStack())
+  // rand.Int() is used by the check library. Without this line it not so random...
+  rand.Seed(time.Now().UnixNano())
 
-  s.In  = NewPath(c.MkDir())
-  s.Out = NewPath(c.MkDir())
-  c.Assert(ExecBashIn(s.In, make_test_fs(runtime.GOOS)).Err, IsNil)
-  startFuse("suffuse", "-m", s.Out.Path, s.In.Path)
+  s.In  = Path(c.MkDir())
+  s.Out = Path(c.MkDir())
+  c.Assert(ExecBashIn(s.In, makeTestFs(runtime.GOOS)).Err, IsNil)
+  startFuse("suffuse", "-m", string(s.Out), string(s.In))
 }
 
 func (s *Tsfs) TearDownSuite(c *C) {
-  Exec("umount", "-f", s.Out.Path)
-  logI("TearDownSuite(%s)\n", c.TestName())
+  s.Out.SysUnmount()
+  info("TearDownSuite(%s)\n", c.TestName())
 }
 func (s *Tsfs) SetUpTest(c *C) {
-  logD("SetUpTest(%s)\n", c.TestName())
+  trace("SetUpTest(%s)\n", c.TestName())
 }
 func (s *Tsfs) TearDownTest(c *C) {
-  logD("TearDownTest(%s)\n", c.GetTestLog())
+  trace("TearDownTest(%s)\n", c.GetTestLog())
 }
+
+func (x Strings) filter(re Regex) Strings    { return filterCommon(x, re, true)    }
+func (x Strings) filterNot(re Regex) Strings { return filterCommon(x, re, false)   }
+
+func filterCommon(x Strings, re Regex, expectTrue bool) Strings {
+  var ys []string
+  for _, line := range x.Array() {
+    if re.MatchString(line) == expectTrue {
+      ys = append(ys, line)
+    }
+  }
+  return Strings(ys)
+}
+
