@@ -13,6 +13,9 @@ dependencies:
     - brew upgrade go
     - brew install Caskroom/cask/osxfuse
     - mkdir -p ~/.go_project/src/github.com/suffuse/go-suffuse
+    - go get github.com/suffuse/go-suffuse/cmd/fileinfo
+    - fileinfo
+    - echo $PATH
     - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse/go-suffuse:
         pwd: $HOME
     - go get -t -v ./...:
