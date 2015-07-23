@@ -12,6 +12,7 @@ machine:
 dependencies:
   pre:
     - brew upgrade go
+    - cd $HOME/.go_project/src/github.com/suffuse/go-suffuse
     - go get -t ./...
 
 test:
