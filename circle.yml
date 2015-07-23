@@ -10,8 +10,8 @@ machine:
 
 dependencies:
   pre:
-    - brew install go
-    - brew install Caskroom/cask/osxfuse
+    - brew upgrade go
+    - brew upgrade Caskroom/cask/osxfuse
     - mkdir -p ~/.go_project/src/github.com/suffuse/go-suffuse
     - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse/go-suffuse:
         pwd: $HOME
