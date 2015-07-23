@@ -15,6 +15,7 @@ dependencies:
     - mkdir -p ~/.go_project/src/github.com/suffuse
     - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse:
         pwd: $HOME
+    - echo $CIRCLE_CI_HOME_FAILURE_FIX
     - go get -t -v ./...:
         pwd: $CIRCLE_CI_HOME_FAILURE_FIX/.go_project/src/github.com/suffuse/go-suffuse
 
