@@ -21,4 +21,4 @@ dependencies:
 test:
   override:
     - go test -v ./...:
-        pwd: ~/.go_project/src/github.com/suffuse/go-suffuse
+        pwd: ../.go_project/src/github.com/suffuse/go-suffuse
