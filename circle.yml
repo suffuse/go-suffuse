@@ -6,6 +6,7 @@ machine:
     XCODE_WORKSPACE: NotUsed.xcworkspace
     XCODE_SCHEME: NotUsed
     GOPATH: ~/.go_project
+    CIRCLE_CI_HOME_FAILURE_FIX: $HOME
     PATH: $PATH:$GOROOT/bin
 
 dependencies:
@@ -15,7 +16,7 @@ dependencies:
     - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse:
         pwd: $HOME
     - go get -t -v ./...:
-        pwd: $HOME/.go_project/src/github.com/suffuse/go-suffuse
+        pwd: $CIRCLE_CI_HOME_FAILURE_FIX/.go_project/src/github.com/suffuse/go-suffuse
 
 test:
   override:
