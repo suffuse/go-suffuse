@@ -6,6 +6,7 @@ machine:
     XCODE_WORKSPACE: NotUsed.xcworkspace
     XCODE_SCHEME: NotUsed
     GOPATH: $HOME/.go_project
+    PATH: $PATH:$GOPATH/bin
 
 dependencies:
   pre:
@@ -16,7 +17,6 @@ dependencies:
     - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse/go-suffuse:
         pwd: $HOME
     - go get github.com/suffuse/go-suffuse/cmd/fileinfo
-    - export PATH="$PATH:$GOROOT/bin"
     - echo $PATH
     - ls -al $GOPATH/bin
     - fileinfo
