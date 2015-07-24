@@ -1,0 +1,26 @@
+## OS X build (CircleCI iOS beta)
+
+# Note that $HOME and `pwd` are unpredictable. That the reason `..` is used.
+
+# Pretend like it's an Xcode project, at least to get it running.
+machine:
+  environment:
+    XCODE_WORKSPACE: NotUsed.xcworkspace
+    XCODE_SCHEME: NotUsed
+    GOPATH: $HOME/.go_project
+    PATH: $PATH:$GOPATH/bin
+
+dependencies:
+  pre:
+    - brew upgrade go
+    - brew install Caskroom/cask/osxfuse
+    - mkdir -p ~/.go_project/src/github.com/suffuse/go-suffuse
+    - cp -R go-suffuse/ ~/.go_project/src/github.com/suffuse/go-suffuse:
+        pwd: $HOME
+    - go get -t -v ./...:
+        pwd: ../.go_project/src/github.com/suffuse/go-suffuse
+
+test:
+  override:
+    - go test -v ./...:
+        pwd: ../.go_project/src/github.com/suffuse/go-suffuse
