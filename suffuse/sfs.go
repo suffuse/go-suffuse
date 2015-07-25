@@ -22,10 +22,11 @@ func WithSfsAt(mountPoint Path, f func(*Inode))error {
   conn, err := fuse.Mount(string(mountPoint))
   if err != nil { return err }
 
-  root := NewRoot(fuseRootId, NoPath)
+  root := NewRoot(fuseRootId)
+
   vfs := &Sfs {
     Mountpoint: mountPoint,
-    RootNode: root,
+    RootNode: NewFuseRoot(root),
     Connection: conn,
   }
   trap := func (sig os.Signal) {
@@ -74,9 +75,15 @@ func NewSfs(conf *SfsConfig) (*Sfs, error) {
   c, err := fuse.Mount(string(mnt), mount_opts...)
   if err != nil { return nil, err }
 
+  nodes := make([]SuffuseNode, len(conf.Paths))
+
+  for i, path := range conf.Paths {
+    nodes[i] = NewRulesNodeRoot(path, rules)
+  }
+
   mfs := &Sfs {
     Mountpoint : mnt,
-    RootNode   : NewRoot(fuseRootId, conf.Paths[0]),
+    RootNode   : NewFuseRoot(NewCompoundNode(nodes...)),
     Connection : c,
   }
 

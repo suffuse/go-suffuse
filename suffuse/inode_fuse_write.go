@@ -4,15 +4,20 @@ package suffuse
  *  See also inode_fuse_read.go.
  */
 
+/*
+
+  Commented out because there is no tests executing them. Also, we don't have SuffuseNode methods
+  for this yet.
+
 import (
   "golang.org/x/net/context"
   "bazil.org/fuse"
   "bazil.org/fuse/fs"
 )
 
-/** The basic writable filesystem ops are
+* The basic writable filesystem ops are
  *    Setattr, Create, Mkdir, Link
- */
+
 func (x *Inode) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
   // TODO: req.Mode, req.Umask
   return x.NewDir(Name(req.Name))
@@ -52,7 +57,7 @@ func (x *Inode) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fus
   Echoerr("[Setattr]\n  %+v\n  %+v", *x, *req)
   return NotSupported()
 }
-
+ */
 /** Some relevant request/response structures.
  */
 

@@ -3,7 +3,6 @@ package suffuse
 import (
   "strings"
   "sort"
-  "bazil.org/fuse"
 )
 
 /** Every directory inode has to have a way to obtain fresh
@@ -14,7 +13,6 @@ import (
 type Inode struct {
   inodeGen *InodeGen
   AttrMap
-  Path
 }
 
 func (x *Inode) AttrKeys()[]AttrKey {
@@ -58,22 +56,6 @@ func (x *Inode) Child(name Name)*Inode {
     return x.DirList()[name]
   }
   return nil
-}
-func (x *Inode) Dirents()[]fuse.Dirent {
-  var res []fuse.Dirent
-  for _, name := range x.ChildNames() {
-    child := x.Child(name)
-    res = append(res, child.FuseDirent(name))
-  }
-  return res
-}
-
-func (x *Inode) FuseDirent(name Name)fuse.Dirent {
-  return fuse.Dirent {
-    Inode: uint64(x.InodeNum()),
-    Type: x.InodeType().ToFuseType(),
-    Name: string(name),
-  }
 }
 
 func expand(level int, name Name, node *Inode)[]string {

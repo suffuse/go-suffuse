@@ -4,7 +4,7 @@ type InodeGen struct {
   fresh chan InodeNum
 }
 
-func NewRoot(startInode uint64, path Path) *Inode {
+func NewRoot(startInode uint64) *Inode {
   ichan := make(chan InodeNum)
   // Monotonically increments the counter without any
   // effort to track or reuse.
@@ -17,10 +17,10 @@ func NewRoot(startInode uint64, path Path) *Inode {
   }()
 
   gen := InodeGen { ichan }
-  return gen.New(InodeDir, path).WithAttr(DirListKey, DirList{})
+  return gen.New(InodeDir)
 }
-func (x *InodeGen) New(tp InodeType, path Path) *Inode {
-  ino := &Inode { inodeGen: x, AttrMap: AttrMap{}, Path: path }
+func (x *InodeGen) New(tp InodeType) *Inode {
+  ino := &Inode { inodeGen: x, AttrMap: AttrMap{} }
   ino.SetAttr(InodeNumKey, <- x.fresh)
   ino.SetAttr(InodeTypeKey, tp)
   ino.SetAttr(PermBitsKey, BasePermBits())
@@ -34,7 +34,7 @@ func (x *InodeGen) New(tp InodeType, path Path) *Inode {
 
 func (x *Inode) New(tp InodeType, name Name) (*Inode, error) {
   if x.IsDir() {
-    child := x.inodeGen.New(tp, x.Path.Join(string(name)))
+    child := x.inodeGen.New(tp)
     x.DirList()[name] = child
     return child, nil
   }

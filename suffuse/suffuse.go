@@ -14,7 +14,6 @@ const (
 var rules = append(
   []Rule {
     &IdRule{},   // The identity fs  - passes underlying paths through unchanged
-    &AttrRule{}, // The attribyte fs - uses Inode attributes as a source of information
   },
   parseRules()...
 )
