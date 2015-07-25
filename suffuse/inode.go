@@ -80,8 +80,7 @@ func expand(level int, name Name, node *Inode)[]string {
 
 func (x *Inode) AddNodeMap(nodes map[Path]interface{})error {
   for path, node := range nodes {
-    err := x.AddPath(path, node)
-    if err != nil { return err }
+    if err := x.AddPath(path, node); err != nil { return err }
   }
   return nil
 }

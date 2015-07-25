@@ -18,19 +18,17 @@ func NewFuseRoot(root SuffuseNode) *FuseNode {
 func (x *FuseNode) Lookup(ctx context.Context, name string) (fs.Node, error) {
   trace("[%v] Lookup(%v)", x.path, name)
 
-  node := x.node.Lookup(Name(name))
-  if node == nil { return nil, NotExist() }
-  return &FuseNode{x.path.Join(name), node}, nil
+  if node := x.node.Lookup(Name(name)); node != nil {
+    return &FuseNode{x.path.Join(name), node}, nil 
+  }
+
+  return nil, NotExist()
 }
 
 func (x *FuseNode) Attr(ctx context.Context, attrRef *fuse.Attr) error {
   trace("[%v] Attr", x)
 
-  a := x.node.MetaData()
-  if a != nil {
-    *attrRef = *a
-    return nil
-  }
+  if a := x.node.MetaData(); a != nil { *attrRef = *a; return nil }
 
   return NotExist()
 }
@@ -38,10 +36,7 @@ func (x *FuseNode) Attr(ctx context.Context, attrRef *fuse.Attr) error {
 func (x *FuseNode) ReadAll(ctx context.Context) ([]byte, error) {
   trace("[%v] ReadAll", x)
 
-  bytes := x.node.FileData()
-  if bytes != nil {
-    return bytes, nil
-  }
+  if bytes := x.node.FileData(); bytes != nil { return bytes, nil }
 
   return nil, NotExist()
 }
@@ -49,10 +44,7 @@ func (x *FuseNode) ReadAll(ctx context.Context) ([]byte, error) {
 func (x *FuseNode) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
   trace("[%v] ReadDirAll", x)
 
-  children := x.node.DirData()
-  if children != nil {
-    return children, nil
-  }
+  if children := x.node.DirData(); children != nil { return children, nil }
 
   return nil, NotADir()
 }
@@ -60,10 +52,7 @@ func (x *FuseNode) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 func (x *FuseNode) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (string, error) {
   trace("[%v] Readlink", x)
 
-  target := x.node.LinkData()
-  if target != nil {
-    return string(*target), nil
-  }
+  if target := x.node.LinkData(); target != nil { return string(*target), nil }
 
   return "", NotValidArg()
 }

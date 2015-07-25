@@ -32,44 +32,31 @@ func (x *Inode) MetaData() *fuse.Attr {
 }
 
 func (x *Inode) Lookup(name Name) SuffuseNode {
-  if !x.IsDir() {
-    return nil
-  }
-  child := x.Child(Name(name))
-  // returning child here fails future nil tests
-  if child == nil { return nil }
-  return child
+  if child := x.Child(Name(name)); child != nil { return child }
+  return nil
 }
 
 func (x *Inode) FileData() []byte {
-  if x.IsAbsent() {
-    return nil
-  }
-  if x.IsDir() {
+  if x.IsAbsent() || x.IsDir() {
     return nil
   }
   return x.Bytes()
 }
 
 func (x *Inode) DirData() []fuse.Dirent {
- if x.IsAbsent() {
-    return nil
-  }
-  if !x.IsDir() {
+  if x.IsAbsent() || !x.IsDir() {
     return nil
   }
   return x.Dirents()
 }
 
 func (x *Inode) LinkData() *LinkTarget {
-  if x.IsAbsent() {
+  if x.IsAbsent() || !x.IsLink() {
     return nil
   }
-  if x.IsLink() {
-    link := x.LinkTarget()
-    return &link
-  }
-  return nil
+
+  link := x.LinkTarget()
+  return &link
 }
 
 func (x *Inode) Dirents()[]fuse.Dirent {
