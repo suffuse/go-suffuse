@@ -29,7 +29,7 @@ type sfsOpts struct {
 
 type SfsConfig struct {
   VolName string
-  Config Path
+  Rules []Rule
   Mountpoint Path
   LogLevel LogLevel
   Paths []Path
@@ -39,7 +39,9 @@ func CreateSfsConfig(argv []string) *SfsConfig {
   trace("argv: %v", argv)
   opts := optsFromArgs(argv[1:])
   MaybeFatal(validate(opts))
-  return configFromOpts(opts)
+  config, err := configFromOpts(opts)
+  MaybeFatal(err)
+  return config
 }
 
 func optsFromArgs(args []string) *sfsOpts {
@@ -74,7 +76,7 @@ func validate(opts *sfsOpts) error {
   return err
 }
 
-func configFromOpts(opts *sfsOpts) *SfsConfig {
+func configFromOpts(opts *sfsOpts) (*SfsConfig, error) {
   var mountPoint Path
   var level LogLevel
 
@@ -92,11 +94,19 @@ func configFromOpts(opts *sfsOpts) *SfsConfig {
     default: level = LogTrace
   }
 
+  rules := defaultRules
+
+  if opts.Config != "" {
+    loadedRules, err := CreateRules(Path(opts.Config).SlurpBytes())
+    if err != nil { return nil, err }
+    rules = append(rules, loadedRules...)
+  }
+
   return &SfsConfig {
     VolName    : opts.VolName,
-    Config     : Path(opts.Config),
+    Rules      : rules,
     Mountpoint : mountPoint,
     Paths      : Paths(opts.Dir),
     LogLevel   : level,
-  }
+  }, nil
 }

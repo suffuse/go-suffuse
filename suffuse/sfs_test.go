@@ -62,15 +62,6 @@ func (s *Tsfs) TestXattr(c *C) {
   }
 }
 
-func (s *Tsfs) TestSedSuffix(c *C) {
-  s1 := ExecIn(s.In, "sed", "-ne", "11,13p", "bigfile.txt").OneLine()
-  s2 := ExecIn(s.Out, "cat", "bigfile.txt#11,13p").OneLine()
-  expected := "11 12 13"
-
-  c.Assert(s1, Equals, expected)
-  c.Assert(s2, Equals, expected)
-}
-
 func (x Path) walkCollect(f func(string, os.FileInfo) string) Strings {
   var res []string
   x.Walk(
