@@ -31,17 +31,12 @@ func NewSfs(conf *SfsConfig) (*Sfs, error) {
          mnt := conf.Mountpoint
   mount_opts := getFuseMountOptions(conf)
 
-  if !conf.Config.IsEmpty() {
-    configFileOpts := readJsonFile(conf.Config)
-    Echoerr("%v", configFileOpts)
-  }
-
   c, err := fuse.Mount(string(mnt), mount_opts...)
   if err != nil { return nil, err }
 
   mfs := &Sfs {
     Mountpoint : mnt,
-    RootNode   : NewIdNode(conf.Paths[0]),
+    RootNode   : NewIdNode(conf.Paths[0], conf.Rules),
     Connection : c,
   }
 

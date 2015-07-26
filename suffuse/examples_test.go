@@ -18,7 +18,7 @@ func TestSed(t *T) {
     `)
 
     // Mount the directory through suffuse.
-    startFuse("suffuse", "-m", out, in)
+    startFuse("suffuse", "-m", out, "-c", "suffuse_tests.conf", in)
 
     result, _ := execute(out)(`
       ls                   # List the contents through the suffuse mount.
@@ -56,7 +56,7 @@ func TestJsonToYaml(t *T) {
     `)
 
     // Mount the directory through suffuse.
-    startFuse("suffuse", "-m", out, in)
+    startFuse("suffuse", "-m", out, "-c", "suffuse_tests.conf", in)
 
     result, _ := execute(out)(`
       cat jsonFile.yaml

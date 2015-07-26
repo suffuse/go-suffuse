@@ -14,12 +14,11 @@ import (
 type IdNode struct {
   fs.NodeRef
   Path Path
+  rules []Rule
 }
 
-var NoNode = NewIdNode(NoPath)
-
-func NewIdNode(path Path) *IdNode {
-  return &IdNode { Path: path }
+func NewIdNode(path Path, rules []Rule) *IdNode {
+  return &IdNode { Path: path, rules: rules }
 }
 
 func (x *IdNode) String() string { return string(x.Path) }
@@ -123,7 +122,7 @@ func (x *IdNode) Setattr(ctx context.Context, req *f.SetattrRequest, resp *f.Set
 func (x *IdNode) Attr(ctx context.Context, attr *f.Attr) error {
   trace("Attr", "path", x.Path)
 
-  for _, rule := range rules {
+  for _, rule := range x.rules {
     a := rule.MetaData(x.Path)
     if a != nil {
       *attr = *a
@@ -145,13 +144,13 @@ func (x *IdNode) Lookup(ctx context.Context, name string) (fs.Node, error) {
   MaybeLog(err)
 
   if err != nil { return nil, err } // f.ENOENT }
-  return NewIdNode(child), nil
+  return NewIdNode(child, x.rules), nil
 }
 
 func (x *IdNode) ReadDirAll(ctx context.Context) ([]f.Dirent, error) {
   trace("ReadDirAll", "path", x.Path)
 
-  for _, rule := range rules {
+  for _, rule := range x.rules {
     children := rule.DirData(x.Path)
     if children != nil { return children, nil }
   }
@@ -161,7 +160,7 @@ func (x *IdNode) Readlink(ctx context.Context, req *f.ReadlinkRequest) (string, 
   path := x.Path
   trace("Readlink", "path", path)
 
-  for _, rule := range rules {
+  for _, rule := range x.rules {
     target := rule.LinkData(path)
     if target != nil { return string(*target), nil }
   }
@@ -171,7 +170,7 @@ func (x *IdNode) Read(ctx context.Context, req *f.ReadRequest, resp *f.ReadRespo
   path := x.Path
   trace("Read", "path", path, "req", *req)
 
-  for _, rule := range rules {
+  for _, rule := range x.rules {
     bytes := rule.FileData(path)
     if bytes != nil {
       HandleRead(req, resp, bytes)
@@ -184,7 +183,7 @@ func (x *IdNode) ReadAll(ctx context.Context) ([]byte, error) {
   path := x.Path
   trace("ReadAll", "path", path)
 
-  for _, rule := range rules {
+  for _, rule := range x.rules {
     bytes := rule.FileData(path)
     if bytes != nil {
       return bytes, nil
@@ -208,7 +207,7 @@ func (x *IdNode) Mkdir(ctx context.Context, req *f.MkdirRequest) (fs.Node, error
   MaybeLog(err)
 
   if err != nil { return nil, err }
-  return NewIdNode(path), nil
+  return NewIdNode(path, x.rules), nil
 }
 func (x *IdNode) Create(ctx context.Context, req *f.CreateRequest, resp *f.CreateResponse) (fs.Node, fs.Handle, error) {
   trace("Create", "path", x.Path, "req", *req)
