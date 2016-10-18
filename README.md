@@ -126,6 +126,8 @@ Make sure that:
 - the `$GOROOT/bin` directory is on your `$PATH`
 
 ```
+# Install dependencies
+go get gopkg.in/check.v1
 # Continuous testing
 bin/cc.sh
 # Docker container works somewhat
